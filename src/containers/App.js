@@ -36,7 +36,6 @@ const videoUploader = new FineUploaderTraditional({
     }
   }
 });
-
 class App extends Component {
   constructor() {
     super();
