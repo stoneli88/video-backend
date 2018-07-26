@@ -1,0 +1,28 @@
+@import "~antd/dist/antd.css";
+
+.container-root .logo {
+  width: 120px;
+  height: 31px;
+  margin: 16px 28px 16px 0;
+  float: left;
+  line-height: 31px;
+  color: #001529;
+  font-size: 18px;
+  background: #fff;
+  text-align: center;
+  border-radius: 5px;
+}
+
+.App-logo {
+  animation: App-logo-spin infinite 20s linear;
+  height: 80px;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
