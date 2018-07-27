@@ -70,9 +70,7 @@ const PrivateRoute = ({ ...props }) => {
               </Header>
               <Content style={{ padding: "0 50px" }}>
                 <Breadcrumb style={{ margin: "16px 0" }}>
-                  <Breadcrumb.Item>Dashboard</Breadcrumb.Item>
-                  <Breadcrumb.Item>视频管理</Breadcrumb.Item>
-                  <Breadcrumb.Item>上传视频</Breadcrumb.Item>
+                  {breadcrumbItems}
                 </Breadcrumb>
                 <Layout style={{ padding: "24px 0", background: "#fff" }}>
                   <Content style={{ padding: "0 24px", minHeight: 280 }}>
