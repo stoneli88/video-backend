@@ -1,7 +1,7 @@
 import Home from "../containers/App";
 import Login from "../containers/login/login";
-import Videos from "../containers/video/videos";
-import Video from "../containers/video/video";
+// import Videos from "../containers/video/videos";
+// import Video from "../containers/video/video";
 
 export const breadcrumbNameMap = {
   "/video/list": "视频管理",
@@ -17,17 +17,17 @@ export const routers = [
   {
     path: "/login",
     component: Login
-  },
-  {
-    path: "/video/list",
-    component: Videos
-  },
-  {
-    path: "/video/new",
-    component: Video
-  },
-  {
-    path: "/video/edit/:vid",
-    component: Video
   }
+  // {
+  //   path: "/video/list",
+  //   component: Videos
+  // },
+  // {
+  //   path: "/video/new",
+  //   component: Video
+  // },
+  // {
+  //   path: "/video/edit/:vid",
+  //   component: Video
+  // }
 ];

@@ -2,7 +2,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 // React Router
-import { Router, Route, Redirect, BrowserRouter } from "react-router-dom";
+import { Route, Link, Redirect, BrowserRouter } from "react-router-dom";
 // ANTD
 import { Layout, Breadcrumb } from "antd";
 // Apollo
@@ -11,13 +11,12 @@ import { ApolloClient } from "apollo-client";
 import { createHttpLink } from "apollo-link-http";
 import { InMemoryCache } from "apollo-cache-inmemory";
 // Component
-import { Header } from "./components/header/Header";
 import registerServiceWorker from "./registerServiceWorker";
 // Routers
 import { routers, breadcrumbNameMap } from "./config/routers";
 
 // Component from ANTD
-const { Content, Footer } = Layout;
+const { Content, Header, Footer } = Layout;
 
 // Here you create the httpLink that will connect your ApolloClient instance with the GraphQL API
 const httpLink = createHttpLink({
@@ -33,8 +32,8 @@ const client = new ApolloClient({
 // AAA
 const PrivateRoute = ({ ...props }) => {
   const { location } = props;
-  let Component;
-  let sessionMetadata = sessionStorage.getItem("MC_SESSION_INFO");
+  let Component, token;
+  let sessionMetadata = sessionStorage.getItem("SITE_SESSION_INFO");
   const pathSnippets = location.pathname.split("/").filter(i => i);
   const extraBreadcrumbItems = pathSnippets.map((_, index) => {
     const url = `/${pathSnippets.slice(0, index + 1).join("/")}`;
@@ -50,17 +49,19 @@ const PrivateRoute = ({ ...props }) => {
     </Breadcrumb.Item>
   ].concat(extraBreadcrumbItems);
   if (sessionMetadata && JSON.parse(sessionMetadata).token) {
+    token = JSON.parse(sessionMetadata).token;
     routers.forEach(router => {
       if ((router.path = location.pathname)) {
         Component = router.component;
       }
     });
+  } else {
+    token = "";
   }
   return (
     <Route
-      {...props}
-      render={props =>
-        sessionMetadata.token !== "" ? (
+      render={() =>
+        token !== "" ? (
           <div className="App container-root">
             <Layout>
               <Header className="header">
@@ -95,9 +96,7 @@ const PrivateRoute = ({ ...props }) => {
 ReactDOM.render(
   <BrowserRouter>
     <ApolloProvider client={client}>
-      <Router history={history}>
-        <Route render={() => <PrivateRoute exact {...props} />} />
-      </Router>
+      <Route render={props => <PrivateRoute {...props} />} />
     </ApolloProvider>
   </BrowserRouter>,
   document.getElementById("root")
