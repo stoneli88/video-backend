@@ -11,6 +11,7 @@ import { ApolloClient } from "apollo-client";
 import { createHttpLink } from "apollo-link-http";
 import { InMemoryCache } from "apollo-cache-inmemory";
 // Component
+import LoginComponent from "./containers/login/login";
 import registerServiceWorker from "./registerServiceWorker";
 // Routers
 import { routers, breadcrumbNameMap } from "./config/routers";
@@ -96,6 +97,7 @@ const PrivateRoute = ({ ...props }) => {
 ReactDOM.render(
   <BrowserRouter>
     <ApolloProvider client={client}>
+      <Route path="/login" component={LoginComponent} />
       <Route render={props => <PrivateRoute {...props} />} />
     </ApolloProvider>
   </BrowserRouter>,

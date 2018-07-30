@@ -1,5 +1,4 @@
 import Home from "../containers/App";
-import Login from "../containers/login/login";
 // import Videos from "../containers/video/videos";
 // import Video from "../containers/video/video";
 
@@ -13,10 +12,6 @@ export const routers = [
   {
     path: "/",
     component: Home
-  },
-  {
-    path: "/login",
-    component: Login
   }
   // {
   //   path: "/video/list",
