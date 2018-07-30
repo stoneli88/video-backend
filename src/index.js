@@ -10,8 +10,12 @@ import { ApolloProvider } from "react-apollo";
 import { ApolloClient } from "apollo-client";
 import { createHttpLink } from "apollo-link-http";
 import { InMemoryCache } from "apollo-cache-inmemory";
+import { split } from "apollo-link";
+import { WebSocketLink } from "apollo-link-ws";
+import { getMainDefinition } from "apollo-utilities";
 // Component
-import LoginComponent from "./containers/login/login";
+import LoginComponent from "./containers/auth/login";
+import RegisterComponent from "./containers/auth/register";
 import registerServiceWorker from "./registerServiceWorker";
 // Routers
 import { routers, breadcrumbNameMap } from "./config/routers";
@@ -21,12 +25,31 @@ const { Content, Header, Footer } = Layout;
 
 // Here you create the httpLink that will connect your ApolloClient instance with the GraphQL API
 const httpLink = createHttpLink({
-  uri: "http://localhost:4466"
+  uri: "http://localhost:4000"
 });
+
+const wsLink = new WebSocketLink({
+  uri: `ws://localhost:4000`,
+  options: {
+    reconnect: true,
+    connectionParams: {
+      authToken: localStorage.getItem("AUTH_TOKEN") || ""
+    }
+  }
+});
+
+const link = split(
+  ({ query }) => {
+    const { kind, operation } = getMainDefinition(query);
+    return kind === "OperationDefinition" && operation === "subscription";
+  },
+  wsLink,
+  httpLink
+);
 
 // Instantiate ApolloClient by passing in the httpLink and a new instance of an InMemoryCache.
 const client = new ApolloClient({
-  link: httpLink,
+  link: link,
   cache: new InMemoryCache()
 });
 
@@ -98,6 +121,7 @@ ReactDOM.render(
   <BrowserRouter>
     <ApolloProvider client={client}>
       <Route path="/login" component={LoginComponent} />
+      <Route path="/register" component={RegisterComponent} />
       <Route render={props => <PrivateRoute {...props} />} />
     </ApolloProvider>
   </BrowserRouter>,
