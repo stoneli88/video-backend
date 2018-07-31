@@ -2,7 +2,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 // React Router
-import { Route, Link, Redirect, BrowserRouter } from "react-router-dom";
+import { Switch, Route, Link, Redirect, BrowserRouter } from "react-router-dom";
 // ANTD
 import { Layout, Breadcrumb } from "antd";
 // Apollo
@@ -56,8 +56,8 @@ const client = new ApolloClient({
 // AAA
 const PrivateRoute = ({ ...props }) => {
   const { location } = props;
-  let Component, token;
-  let sessionMetadata = sessionStorage.getItem("SITE_SESSION_INFO");
+  let Component;
+  let AUTH_TOKEN = sessionStorage.getItem("AUTH_TOKEN");
   const pathSnippets = location.pathname.split("/").filter(i => i);
   const extraBreadcrumbItems = pathSnippets.map((_, index) => {
     const url = `/${pathSnippets.slice(0, index + 1).join("/")}`;
@@ -72,20 +72,17 @@ const PrivateRoute = ({ ...props }) => {
       <Link to="/">Home</Link>
     </Breadcrumb.Item>
   ].concat(extraBreadcrumbItems);
-  if (sessionMetadata && JSON.parse(sessionMetadata).token) {
-    token = JSON.parse(sessionMetadata).token;
+  if (AUTH_TOKEN) {
     routers.forEach(router => {
       if ((router.path = location.pathname)) {
         Component = router.component;
       }
     });
-  } else {
-    token = "";
   }
   return (
     <Route
       render={() =>
-        token !== "" ? (
+        AUTH_TOKEN ? (
           <div className="App container-root">
             <Layout>
               <Header className="header">
@@ -120,9 +117,11 @@ const PrivateRoute = ({ ...props }) => {
 ReactDOM.render(
   <BrowserRouter>
     <ApolloProvider client={client}>
-      <Route path="/login" component={LoginComponent} />
-      <Route path="/register" component={RegisterComponent} />
-      <Route render={props => <PrivateRoute {...props} />} />
+      <Switch>
+        <Route path="/login" component={LoginComponent} />
+        <Route path="/register" component={RegisterComponent} />
+        <Route render={props => <PrivateRoute {...props} />} />
+      </Switch>
     </ApolloProvider>
   </BrowserRouter>,
   document.getElementById("root")

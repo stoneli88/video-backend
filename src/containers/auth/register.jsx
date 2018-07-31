@@ -25,6 +25,7 @@ class Register extends Component {
 
   handleSubmit = e => {
     e.preventDefault();
+    this.mutation();
     this.props.form.validateFields((err, values) => {
       if (!err) {
         console.log("Received values of form: ", values);
@@ -35,7 +36,7 @@ class Register extends Component {
   compareToFirstPassword = (rule, value, callback) => {
     const form = this.props.form;
     if (value && value !== form.getFieldValue("password")) {
-      callback("Two passwords that you enter is inconsistent!");
+      callback("二次输入的密码不一致，请确认!");
     } else {
       callback();
     }
@@ -56,11 +57,11 @@ class Register extends Component {
   };
 
   _saveUserData = token => {
-    sessionStorage.setItem(AUTH_TOKEN, token);
+    sessionStorage.setItem("AUTH_TOKEN", token);
   };
 
   render() {
-    const { getFieldDecorator } = this.props.form;
+    const { getFieldDecorator, getFieldValue } = this.props.form;
 
     return (
       <Layout className="App container-login">
@@ -70,12 +71,12 @@ class Register extends Component {
             style={{ fontSize: "96px", textAlign: "center" }}
           >
             <div style={{ fontSize: "32px" }}>Welcome</div>
-            <Icon type="user" />
+            <Icon type="user-add" />
           </div>
           <Form onSubmit={this.handleSubmit} className="login-form">
             <FormItem>
-              {getFieldDecorator("userName", {
-                rules: [{ required: true, message: "请输入用户名!" }]
+              {getFieldDecorator("email", {
+                rules: [{ required: true, message: "请输入正确的邮件地址!" }]
               })(
                 <Input
                   prefix={
@@ -103,30 +104,29 @@ class Register extends Component {
                 />
               )}
             </FormItem>
-            <FormItem {...formItemLayout} label="确认密码">
+            <FormItem>
               {getFieldDecorator("confirm", {
                 rules: [
                   {
                     required: true,
-                    message: "Please confirm your password!"
+                    message: "请再次输入您的密码!"
                   },
                   {
                     validator: this.compareToFirstPassword
                   }
                 ]
-              })(<Input type="password" onBlur={this.handleConfirmBlur} />)}
+              })(
+                <Input
+                  type="password"
+                  onBlur={this.handleConfirmBlur}
+                  prefix={
+                    <Icon type="lock" style={{ color: "rgba(0,0,0,.25)" }} />
+                  }
+                  placeholder="确认密码"
+                />
+              )}
             </FormItem>
-            <FormItem
-              {...formItemLayout}
-              label={
-                <span>
-                  昵称&nbsp;
-                  <Tooltip title="我们应该怎么称呼你?">
-                    <Icon type="question-circle-o" />
-                  </Tooltip>
-                </span>
-              }
-            >
+            <FormItem>
               {getFieldDecorator("name", {
                 rules: [
                   {
@@ -135,33 +135,53 @@ class Register extends Component {
                     whitespace: true
                   }
                 ]
-              })(<Input />)}
+              })(
+                <Input
+                  prefix={
+                    <Icon type="smile-o" style={{ color: "rgba(0,0,0,.25)" }} />
+                  }
+                  placeholder="请输入您的昵称!"
+                />
+              )}
             </FormItem>
-            <FormItem {...tailFormItemLayout}>
+            <FormItem>
               {getFieldDecorator("agreement", {
                 valuePropName: "checked"
               })(
                 <Checkbox>
-                  我已经阅读且同意 <a href="">网站条款</a>
+                  我已经阅读且同意 <a href="">【网站条款】</a>
                 </Checkbox>
               )}
             </FormItem>
-            <FormItem>
-              <Mutation
-                mutation={SIGNUP_MUTATION}
-                variables={{ userName, name, password }}
-                onCompleted={data => this._confirm(data)}
-              />
-              {mutation => (
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  className="register-form-button"
-                >
-                  注册
-                </Button>
-              )}
-            </FormItem>
+            <Mutation
+              mutation={SIGNUP_MUTATION}
+              variables={{
+                email: getFieldValue("email"),
+                password: getFieldValue("password"),
+                name: getFieldValue("name")
+              }}
+              onCompleted={data => this._confirm(data)}
+            >
+              {(mutation, { loading, error }) => {
+                this.mutation = mutation;
+                return (
+                  <FormItem>
+                    <Button
+                      type="primary"
+                      htmlType="submit"
+                      className="register-form-button"
+                      style={{ width: "100%" }}
+                    >
+                      注册
+                    </Button>
+                    <div className="register-footer">
+                      {loading && <p>正在提交请求...</p>}
+                      {error && <p>Error :( 服务器开小差了，请稍后再尝试注册!</p>}
+                    </div>
+                  </FormItem>
+                );
+              }}
+            </Mutation>
           </Form>
         </div>
       </Layout>
