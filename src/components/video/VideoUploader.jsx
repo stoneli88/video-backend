@@ -1,6 +1,7 @@
 import React, { Component } from "react";
-import Gallery from "../components/react-fine-upload/gallery/index";
+import Gallery from "../react-fine-upload/gallery/index";
 import FineUploaderTraditional from "fine-uploader-wrappers";
+import "../react-fine-upload/gallery/gallery.css";
 
 // declare a new uploader instance.
 const videoUploader = new FineUploaderTraditional({

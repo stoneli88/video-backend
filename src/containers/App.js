@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { Link } from "react-router-dom";
 // ANTD.
 import {
   Layout,
@@ -54,28 +55,31 @@ const VIDEOS_QUERY = gql`
 
 const columns = [
   {
-    title: "视频名称",
+    title: "名称",
     dataIndex: "name",
-    render: text => {
+    render: (text, record, index) => {
       return (
         <Tooltip title="点击查看视频详情">
-          <a href="javascript:;">{text}</a>
+          <Link to={{
+            pathname: "/video",
+            search: `${record.name}`,
+          }}>{text}</Link>
         </Tooltip>
       );
     }
   },
   {
-    title: "视频分类",
+    title: "分类",
     className: "column-category",
     dataIndex: "category"
   },
   {
-    title: "视频上传者",
+    title: "上传者",
     className: "column-owner",
     dataIndex: "owner"
   },
   {
-    title: "视频上传时间",
+    title: "上传时间",
     className: "column-createdTime",
     dataIndex: "createdAt",
     render: text => {
@@ -83,7 +87,7 @@ const columns = [
     }
   },
   {
-    title: "视频简述",
+    title: "简述",
     className: "column-owner",
     dataIndex: "description"
   },
@@ -177,6 +181,7 @@ class App extends Component {
     if (!videos) return [];
     return videos.map(video => {
       return {
+        id: video.id,
         name: video.name,
         category: video.category.name,
         owner: video.owner.name,
@@ -188,8 +193,6 @@ class App extends Component {
   }
 
   render() {
-    const authToken = localStorage.getItem("AUTH_TOKEN");
-
     return (
       <Layout className="App container-dashboard">
         <Row gutter={24} style={{ margin: "10px 0" }}>
@@ -249,9 +252,12 @@ class App extends Component {
               );
             return (
               <Table
+                style={{ margin: "12px" }}
+                bordered
                 columns={columns}
                 dataSource={this._getTableColumnData(data.videos)}
                 pagination={{ pageSize: 20 }}
+                style={{ background: "#fff" }}
               />
             );
           }}

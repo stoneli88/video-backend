@@ -9,6 +9,7 @@ import { Layout, Breadcrumb } from "antd";
 import { ApolloProvider } from "react-apollo";
 import { ApolloClient } from "apollo-client";
 import { createHttpLink } from "apollo-link-http";
+import { setContext } from "apollo-link-context";
 import { InMemoryCache } from "apollo-cache-inmemory";
 import { split } from "apollo-link";
 import { WebSocketLink } from "apollo-link-ws";
@@ -28,12 +29,24 @@ const httpLink = createHttpLink({
   uri: "http://localhost:4000"
 });
 
+const authLink = setContext((_, { headers }) => {
+  // get the authentication token from local storage if it exists
+  const token = localStorage.getItem("AUTH_TOKEN");
+  // return the headers to the context so httpLink can read them
+  return {
+    headers: {
+      ...headers,
+      authorization: token ? `Bearer ${token}` : ""
+    }
+  };
+});
+
 const wsLink = new WebSocketLink({
   uri: `ws://localhost:4000`,
   options: {
     reconnect: true,
     connectionParams: {
-      authToken: localStorage.getItem("AUTH_TOKEN") || ""
+      authToken: sessionStorage.getItem("AUTH_TOKEN") || ""
     }
   }
 });
@@ -43,13 +56,14 @@ const link = split(
     const { kind, operation } = getMainDefinition(query);
     return kind === "OperationDefinition" && operation === "subscription";
   },
+  authLink,
   wsLink,
   httpLink
 );
 
 // Instantiate ApolloClient by passing in the httpLink and a new instance of an InMemoryCache.
 const client = new ApolloClient({
-  link: link,
+  link,
   cache: new InMemoryCache()
 });
 
@@ -74,7 +88,7 @@ const PrivateRoute = ({ ...props }) => {
   ].concat(extraBreadcrumbItems);
   if (AUTH_TOKEN) {
     routers.forEach(router => {
-      if ((router.path = location.pathname)) {
+      if (router.path === location.pathname) {
         Component = router.component;
       }
     });
