@@ -42,6 +42,7 @@ const VIDEOS_QUERY = gql`
       name
       description
       category {
+        id
         name
       }
       owner {
@@ -62,7 +63,7 @@ const columns = [
         <Tooltip title="点击查看视频详情">
           <Link to={{
             pathname: "/video",
-            search: `${record.name}`,
+            search: `${record.id}`,
           }}>{text}</Link>
         </Tooltip>
       );

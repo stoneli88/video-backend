@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import axios from "axios";
 import Gallery from "../react-fine-upload/gallery/index";
 import FineUploaderTraditional from "fine-uploader-wrappers";
 import "../react-fine-upload/gallery/gallery.css";
@@ -11,7 +12,7 @@ const videoUploader = new FineUploaderTraditional({
     maxConnections: 5,
     chunking: {
       enabled: true,
-      partSize: 2000000,
+      partSize: 1000000,
       concurrent: {
         enabled: true
       }
@@ -28,6 +29,20 @@ const videoUploader = new FineUploaderTraditional({
     },
     resume: {
       enabled: true
+    },
+    callbacks: {
+      onComplete: async function(id, name, responseJSON) {
+        const job = await axios.post("http://127.0.0.1:8080/api/new_job", {
+          uuid: responseJSON.uuid[0],
+          file: name
+        });
+        // const { data, jobId, success } = job.data;
+        // if (success) {
+        //   const result = await axios.post("http://127.0.0.1/api/fire_job", {
+        //     jobId
+        //   });
+        // }
+      }
     }
   }
 });
