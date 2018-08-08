@@ -1,8 +1,16 @@
 import React, { Component } from "react";
+import { Modal } from "antd";
 import axios from "axios";
 import Gallery from "../react-fine-upload/gallery/index";
 import FineUploaderTraditional from "fine-uploader-wrappers";
 import "../react-fine-upload/gallery/gallery.css";
+
+// Test file extension.
+function hasExtension(fileName, exts) {
+  return new RegExp("(" + exts.join("|").replace(/\./g, "\\.") + ")$").test(
+    fileName
+  );
+}
 
 // declare a new uploader instance.
 const videoUploader = new FineUploaderTraditional({
@@ -29,20 +37,6 @@ const videoUploader = new FineUploaderTraditional({
     },
     resume: {
       enabled: true
-    },
-    callbacks: {
-      onComplete: async function(id, name, responseJSON) {
-        const job = await axios.post("http://127.0.0.1:8080/api/new_job", {
-          uuid: responseJSON.uuid[0],
-          file: name
-        });
-        // const { data, jobId, success } = job.data;
-        // if (success) {
-        //   const result = await axios.post("http://127.0.0.1/api/fire_job", {
-        //     jobId
-        //   });
-        // }
-      }
     }
   }
 });
@@ -51,16 +45,47 @@ class VideoUploader extends Component {
   constructor() {
     super();
 
-    this.state = {
-      submittedFile: 0,
-      submittedFileName: ""
-    };
+    this.state = {};
+    this.uploadFiles = [];
   }
 
   componentDidMount() {
     videoUploader.on("submit", (id, name) => {
-      this.setState({ submittedFile: id, submittedFileName: name });
+      this.uploadFiles.push({ submittedFile: id, submittedFileName: name });
       return true;
+    });
+    videoUploader.on("deleteComplete", (id, reqJSON, isError) => {
+      this.props.handleFileDelete.apply(this, []);
+    });
+    videoUploader.on("validate", (data, buttonContainer) => {
+      if (
+        !hasExtension(data.name, ["mp4", "rm", "mov", "wmv", "webm", "ogg"])
+      ) {
+        Modal.error({
+          title: "请注意",
+          content: "上传文件不符合要求"
+        });
+        return false;
+      }
+      if (videoUploader.methods.getNetUploads() > 1) {
+        Modal.error({
+          title: "请注意",
+          content: "目前只允许上传一个文件."
+        });
+        return false;
+      }
+    });
+    videoUploader.on("complete", async (id, name, responseJSON) => {
+      if (responseJSON && responseJSON.uuid) {
+        const job = await axios.post("http://127.0.0.1:8080/api/new_job", {
+          file: name,
+          uuid: responseJSON.uuid[0]
+        });
+        const { data, jobId, success } = job.data;
+        if (success) {
+          this.props.handleFileChange.apply(this, [jobId, responseJSON]);
+        }
+      }
     });
   }
 

@@ -90,11 +90,23 @@ class Video extends Component {
 
   handleSubmit = e => {
     e.preventDefault();
-    this.mutation();
     this.props.form.validateFields((err, values) => {
       if (!err) {
         console.log("Received values of form: ", values);
+        this.mutation();
       }
+    });
+  };
+
+  handleFileChange = (uuid, responseJSON) => {
+    this.props.form.setFieldsValue({
+      uuid
+    });
+  };
+
+  handleFileDelete = () => {
+    this.props.form.setFieldsValue({
+      uuid: ""
     });
   };
 
@@ -203,10 +215,25 @@ class Video extends Component {
                       </label>
                     </div>
                     <div className="ant-col-14 ant-form-item-control-wrapper">
-                      <VideoUploader />
+                      <VideoUploader
+                        handleFileChange={this.handleFileChange}
+                        handleFileDelete={this.handleFileDelete}
+                      />
                     </div>
                   </div>
-
+                  <FormItem {...formItemLayout} label="视频标识">
+                    {getFieldDecorator("uuid", {
+                      rules: [
+                        { required: true, message: "请确认文件上传是否成功." }
+                      ]
+                    })(
+                      <Input
+                        disabled
+                        type="text"
+                        placeholder="文件标识，上传完成后会显示"
+                      />
+                    )}
+                  </FormItem>
                   <Mutation
                     mutation={CREATE_OR_UPDATE_VIDEO_MUTATION}
                     variables={{
