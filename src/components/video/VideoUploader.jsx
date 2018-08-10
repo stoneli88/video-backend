@@ -58,6 +58,7 @@ class VideoUploader extends Component {
       this.props.handleFileDelete.apply(this, []);
     });
     videoUploader.on("validate", (data, buttonContainer) => {
+      console.log(videoUploader.methods.getNetUploads());
       if (
         !hasExtension(data.name, ["mp4", "rm", "mov", "wmv", "webm", "ogg"])
       ) {
@@ -67,7 +68,8 @@ class VideoUploader extends Component {
         });
         return false;
       }
-      if (videoUploader.methods.getNetUploads() > 1) {
+      // file counts start with 0.
+      if (videoUploader.methods.getNetUploads() >= 1) {
         Modal.error({
           title: "请注意",
           content: "目前只允许上传一个文件."

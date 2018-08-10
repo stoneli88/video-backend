@@ -2,12 +2,10 @@ import React, { Component } from "react";
 // ANTD.
 import {
   Layout,
-  Icon,
   Form,
   Input,
   Button,
   Select,
-  notification,
   Alert
 } from "antd";
 // Apollo.
@@ -56,16 +54,18 @@ const VIDEOS_QUERY = gql`
 `;
 
 const CREATE_OR_UPDATE_VIDEO_MUTATION = gql`
-  mutation createOrUpdateVideo(
+  mutation CreateOrUpdateVideo(
     $id: String
+    $uuid: String
     $name: String
     $description: String
     $category: String
     $isEncoded: String
     $path: String
   ) {
-    signup(
+    createOrUpdateVideo(
       id: $id
+      uuid: $uuid
       name: $name
       description: $description
       category: $category
@@ -136,7 +136,11 @@ class Video extends Component {
           let videoData =
             data && data.videos && data.videos.length > 0
               ? data.videos[0]
-              : undefined;
+              : {
+                name: "",
+                description: "",
+                category: { name: "", id: "" }
+              };
           if (error) {
             return (
               <Alert
@@ -237,9 +241,13 @@ class Video extends Component {
                   <Mutation
                     mutation={CREATE_OR_UPDATE_VIDEO_MUTATION}
                     variables={{
+                      id: videoData.id ? videoData.id : "",
                       name: getFieldValue("name"),
                       description: getFieldValue("description"),
-                      category: getFieldValue("category")
+                      category: getFieldValue("category"),
+                      uuid: getFieldValue("uuid"),
+                      isEncoded: false,
+                      path: ""
                     }}
                     onCompleted={data => this._confirm(data)}
                   >
