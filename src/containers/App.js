@@ -39,13 +39,14 @@ const VIDEOS_QUERY = gql`
 const columns = [
 	{
 		title: '名称',
-		dataIndex: 'name',
+    dataIndex: 'name',
+    width: 300,
 		render: (text, record, index) => {
 			return (
 				<Tooltip title="点击查看视频详情">
 					<Link
 						to={{
-							pathname: '/video',
+							pathname: '/video/edit',
 							search: `${record.id}`
 						}}
 					>
@@ -58,12 +59,14 @@ const columns = [
 	{
 		title: '分类',
 		className: 'column-category',
-		dataIndex: 'category'
+    dataIndex: 'category',
+    width: 100,
 	},
 	{
 		title: '上传者',
 		className: 'column-owner',
-		dataIndex: 'owner'
+    dataIndex: 'owner',
+    width: 100,
 	},
 	{
 		title: '上传时间',
@@ -76,7 +79,8 @@ const columns = [
 	{
 		title: '简述',
 		className: 'column-owner',
-		dataIndex: 'description'
+    dataIndex: 'description',
+    width: 400,
 	},
 	{
 		title: '转码状态',
