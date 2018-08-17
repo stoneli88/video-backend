@@ -139,6 +139,7 @@ class Video extends PureComponent {
 	};
 
 	handleFileChange = (uuid, responseJSON) => {
+		console.log(uuid);
 		this.props.form.setFieldsValue({
 			uuid
 		});

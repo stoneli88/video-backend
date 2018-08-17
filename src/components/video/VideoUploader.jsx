@@ -82,6 +82,7 @@ class VideoUploader extends Component {
 					uuid: responseJSON.uuid[0]
 				});
 				const { data, jobId, success } = job.data;
+				console.log(job);
 				if (success) {
           this.setState({ uuid: responseJSON.uuid[0] });
 					this.props.handleFileChange.apply(this, [ jobId, responseJSON ]);
