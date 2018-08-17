@@ -122,9 +122,9 @@ const columns = [
 			let status = {};
 			if (uuid && !path) {
 				status = (
-					<Tooltip title="视频正在等待转码中, 可以手动刷新查看最新状态.">
+					<Tooltip title="视频已经在转码队列中, 可以手动刷新查看最新状态.">
 						<span>
-							<Badge status="processing" style={{ width: '16px', height: '16px' }} />已经上传，等待转码
+							<Badge status="processing" style={{ width: '16px', height: '16px' }} />已经上传，转码队列中...
 						</span>
 					</Tooltip>
 				);
@@ -162,7 +162,7 @@ const columns = [
 						return (
 							<ButtonGroup>
 								<Button type="danger" onClick={() => handleCodeVideo.apply(this, [ record ])}>
-									<Icon type="coffee" />转码
+									<Icon type="coffee" />队列
 								</Button>
 								<Button type="default">
 									<Icon type="picture" />截图

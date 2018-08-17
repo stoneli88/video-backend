@@ -4,9 +4,6 @@ import { Link } from 'react-router-dom';
 import axios from '../../axios';
 // ANTD.
 import { Layout, Input, Button, Alert, Modal, Tooltip, Row, Col, Radio, Table } from 'antd';
-// Date.
-import dayjs from 'dayjs';
-import 'dayjs/locale/zh-cn';
 // Stylesheet.
 import './style.css';
 
@@ -42,7 +39,7 @@ const queueColumns = [
 	{
 		title: '状态',
 		dataIndex: 'status',
-		width: 350,
+		width: 150,
 		render: (text, record, index) => {}
 	}
 ];
@@ -52,49 +49,43 @@ class Queue extends PureComponent {
 		super();
 		this.state = {
 			filter: {},
-      size: 20,
-      queues: []
+			size: 20,
+			queues: []
 		};
 		this.handleJobFilterStatusChange = this.handleJobFilterStatusChange.bind(this);
 	}
 
 	async componentDidMount() {
-    try {
-      const queues = await axios.get(`/queue/all/waiting/${this.state.size}`);
-      console.log(queues);
-    } catch (error) {
-      console.log(error);
-    }
+		try {
+			const queues = await axios.get(`/queue/all/waiting/${this.state.size}`);
+			this.setState({ queues });
+		} catch (error) {
+			console.log(error);
+		}
 	}
 
 	handleJobFilterStatusChange(e) {
 		console.log(`radio checked:${e.target.value}`);
 	}
 
-	// _getTableColumnData(queues) {
-	// 	if (!queues) return [];
-	// 	return queues.map((video) => {
-	// 		return {
-	// 			id: video.id,
-	// 			uuid: video.uuid,
-	// 			name: video.name,
-	// 			path: video.path,
-	// 			category: video.category.name,
-	// 			owner: video.owner.name,
-	// 			createdAt: video.createdAt,
-	// 			updateAt: video.updateAt,
-	// 			isEncoded: video.isEncoded,
-	// 			description: video.description
-	// 		};
-	// 	});
-	// }
+	_getTableColumnData() {
+		if (!this.state.queues.length) return [];
+		return this.state.queues.map((queue) => {
+			return {
+				id: queue.id,
+				uuid: queue.uuid,
+				name: queue.name,
+				status: queue.status
+			};
+		});
+	}
 
 	render() {
 		return (
 			<Layout className="queue container-queue" style={{ borderRadius: '5px' }}>
 				<Row gutter={24} style={{ margin: '10px 0' }}>
 					<Col span={18}>
-						<Search enterButton style={{ width: '50%' }} placeholder="请输入搜索内容" />
+						<Search enterButton style={{ width: '50%', marginRight: '12px' }} placeholder="请输入搜索内容" />
 						<RadioGroup onChange={this.handleJobFilterStatusChange} defaultValue="waiting">
 							<RadioButton value="waiting">等待</RadioButton>
 							<RadioButton value="active">活动</RadioButton>
@@ -109,13 +100,13 @@ class Queue extends PureComponent {
 						</Tooltip>
 					</Col>
 				</Row>
-				{/* <Table
+				<Table
 					style={{ margin: '12px', background: '#fff', marginTop: '0' }}
 					bordered
 					columns={queueColumns}
-					dataSource={this._getTableColumnData(data.videos)}
+					dataSource={this._getTableColumnData()}
 					pagination={{ pageSize: 20 }}
-				/> */}
+				/>
 			</Layout>
 		);
 	}
