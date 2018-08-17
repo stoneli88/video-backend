@@ -161,8 +161,8 @@ const columns = [
 						this.updateVideoMutation = mutation;
 						return (
 							<ButtonGroup>
-								<Button type="danger" onClick={() => handleCodeVideo.apply(this, [ record ])}>
-									<Icon type="coffee" />队列
+								<Button type="default" onClick={() => handleCodeVideo.apply(this, [ record ])}>
+									<Icon type="sync" />同步
 								</Button>
 								<Button type="default">
 									<Icon type="picture" />截图
