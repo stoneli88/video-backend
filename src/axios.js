@@ -9,7 +9,7 @@ instance.defaults.headers.common['Authorization'] = window.sessionStorage.getIte
 
 //覆盖库的超时默认值
 //现在所有请求将在超时前等待2.5秒
-instance.defaults.timeout = 2500;
+instance.defaults.timeout = 5000;
 
 //添加请求拦截器
 instance.interceptors.request.use(

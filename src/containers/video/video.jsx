@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 // Axios
 import axios from '../../axios';
 // ANTD.
@@ -68,7 +68,7 @@ const CREATE_VIDEO_MUTATION = gql`
 
 const UPDATE_VIDEO_MUTATION = gql`
 	mutation UpdateVideoMutation(
-		$id: String
+		$id: String!
 		$uuid: String
 		$name: String
 		$description: String
@@ -97,7 +97,7 @@ const formItemLayout = {
 	wrapperCol: { span: 14 }
 };
 
-class Video extends Component {
+class Video extends PureComponent {
 	constructor() {
 		super();
 		this.state = {};
@@ -151,25 +151,33 @@ class Video extends Component {
 		});
 	};
 
-  // 删除已经存在的文件
-	handleDeleteFile = refetch => {
-    const { getFieldValue } = this.props.form;
-    const vid = this.props.location.search ? this.props.location.search.replace('?', '').trim() : '';
+	// 删除已经存在的文件
+	// todo: 需要添加删除转码后文件的删除接口.
+	handleDeleteFile = (refetch) => {
+		const { getFieldValue } = this.props.form;
+		const vid = this.props.location.search ? this.props.location.search.replace('?', '').trim() : '';
 		axios.delete(`/upload/${getFieldValue('uuid')}`).then(() => {
 			Modal.success({
 				title: '提醒',
 				content: '视频删除成功，现在您可以上传新的视频了。',
 				onOk: () => {
-          this.mutation({
-						id: vid,
-						uuid: "",
-						name: getFieldValue('name'),
-						description: getFieldValue('description'),
-						category: getFieldValue('category'),
-						isEncoded: false,
-						path: ""
+					this.mutation({
+						refetchQueries: () => [
+							{
+								query: VIDEOS_QUERY,
+								variables: this._getQueryVariables()
+							}
+						],
+						variables: {
+							id: vid,
+							uuid: '',
+							name: getFieldValue('name'),
+							description: getFieldValue('description'),
+							category: getFieldValue('category'),
+							isEncoded: false,
+							path: ''
+						}
 					});
-					refetch();
 				}
 			});
 		});
@@ -197,6 +205,7 @@ class Video extends Component {
 
 	render() {
 		const { getFieldDecorator } = this.props.form;
+		const videoId = this.props.location.search ? this.props.location.search.replace('?', '').trim() : '';
 		return (
 			<Query query={VIDEOS_QUERY} variables={this._getQueryVariables()}>
 				{({ error, data, refetch }) => {
@@ -204,8 +213,10 @@ class Video extends Component {
 						data && data.videos && data.videos.length > 0
 							? data.videos[0]
 							: {
+									uuid: '',
 									name: '',
 									description: '',
+									path: '',
 									category: { name: '', id: '' }
 								};
 					if (error) {
@@ -236,7 +247,7 @@ class Video extends Component {
 											return (
 												<FormItem {...formItemLayout} label="分类">
 													{getFieldDecorator('category', {
-														initialValue: `${videoData.category.name}`,
+														initialValue: `${videoData.category.id}`,
 														rules: [
 															{
 																required: true,
@@ -267,7 +278,7 @@ class Video extends Component {
 											/>
 										</div>
 									) : (
-										'' 
+										''
 									)}
 									{videoData.uuid !== '' && videoData.path === '' ? (
 										<div style={{ marginLeft: '8.4444%', width: '58.4%' }}>
@@ -280,7 +291,7 @@ class Video extends Component {
 											<Button
 												type="danger"
 												style={{ width: '100%', margin: '10px 0', height: '40px' }}
-												onClick={() => this.handleDeleteFile.apply(this, [refetch])}
+												onClick={() => this.handleDeleteFile.apply(this, [ refetch ])}
 											>
 												我要删除已经上传的视频
 											</Button>
@@ -306,11 +317,8 @@ class Video extends Component {
 											rules: [ { required: true, message: '请确认文件上传是否成功.' } ]
 										})(<Input disabled type="text" placeholder="文件标识，上传完成后会显示" />)}
 									</FormItem>
-									{videoData.uuid !== '' && videoData.path === '' ? (
-										<Mutation
-											mutation={UPDATE_VIDEO_MUTATION}
-											onCompleted={(data) => this._confirm(data)}
-										>
+									{videoId ? (
+										<Mutation mutation={UPDATE_VIDEO_MUTATION}>
 											{(mutation, { loading, error }) => {
 												this.mutation = mutation;
 												return (
