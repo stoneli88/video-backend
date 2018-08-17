@@ -284,7 +284,7 @@ class Videos extends PureComponent {
 						</Mutation>
 					</Col>
 				</Row>
-				<Query query={VIDEOS_QUERY} variables={this._getQueryVariables()} notifyOnNetworkStatusChange>
+				<Query query={VIDEOS_QUERY} variables={this._getQueryVariables()} pollInterval={500}>
 					{({ error, data }) => {
 						if (error)
 							return <Alert showIcon message={`获取视频信息出错了!`} description={`原因:${error}`} type="error" />;

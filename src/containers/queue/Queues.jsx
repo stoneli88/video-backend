@@ -3,13 +3,17 @@ import { Link } from 'react-router-dom';
 // Axios
 import axios from '../../axios';
 // ANTD.
-import { Layout, Input, Button, Alert, Modal, Tooltip, Row, Col, Radio, Table } from 'antd';
+import { Layout, Input, Button, Tooltip, Row, Col, Radio, Table, Icon } from 'antd';
 // Stylesheet.
 import './style.css';
 
 const Search = Input.Search;
 const RadioButton = Radio.Button;
 const RadioGroup = Radio.Group;
+
+const handleRemoveJob = record => {
+  console.log(record);
+}
 
 const queueColumns = [
 	{
@@ -32,16 +36,37 @@ const queueColumns = [
 		}
 	},
 	{
-		title: '工作进度',
-		dataIndex: 'progress',
-		render: (text, record, index) => {}
-	},
-	{
-		title: '状态',
-		dataIndex: 'status',
+		title: '创建时间',
+		dataIndex: 'created',
 		width: 150,
-		render: (text, record, index) => {}
-	}
+		render: (text, record, index) => {
+      return (
+        <span>{text}</span>
+      );
+    }
+  },
+  {
+    title: '视频分辨率',
+    dataIndex: 'size',
+    width: 150,
+    render: (text, record, index) => {
+      return (
+        <span>{text}</span>
+      );
+    }
+  },
+  {
+    title: '操作',
+		key: 'operation',
+    width: 300,
+    render: (text, record, index) => {
+      return (
+        <Button type="danger" onClick={() => handleRemoveJob.apply(this, [ record ])}>
+          <Icon type="remove" />终止此条任务
+        </Button>
+      );
+    }
+  }
 ];
 
 class Queue extends PureComponent {
@@ -64,18 +89,23 @@ class Queue extends PureComponent {
 		}
 	}
 
-	handleJobFilterStatusChange(e) {
-		console.log(`radio checked:${e.target.value}`);
+	async handleJobFilterStatusChange(e) {
+    try {
+      const queues = await axios.get(`/queue/all/${e.target.value}/${this.state.size}`);
+			this.setState({ queues: queues.data.jobs });
+		} catch (error) {
+			console.log(error);
+		}
 	}
 
 	_getTableColumnData() {
 		if (!this.state.queues.length) return [];
-		return this.state.queues.map((queue) => {
+		return this.state.queues.map(queue => {
 			return {
 				id: queue.id,
-				uuid: queue.uuid,
-				name: queue.name,
-				status: queue.status
+        name: queue.data.video_name,
+        created: queue.data.job_created || "无法获取时间",
+				size: queue.data.video_size
 			};
 		});
 	}
@@ -89,7 +119,9 @@ class Queue extends PureComponent {
 						<RadioGroup onChange={this.handleJobFilterStatusChange} defaultValue="waiting">
 							<RadioButton value="waiting">等待</RadioButton>
 							<RadioButton value="active">活动</RadioButton>
-							<RadioButton value="delayed">延迟(出现问题)</RadioButton>
+							<RadioButton value="delayed">延迟</RadioButton>
+              <RadioButton value="failed">失败</RadioButton>
+              <RadioButton value="succeeded">成功</RadioButton>
 						</RadioGroup>
 					</Col>
 					<Col span={6} style={{ textAlign: 'right' }}>
