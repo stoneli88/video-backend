@@ -109,7 +109,7 @@ class Login extends Component {
                   >
                     登录
                   </Button>
-                  Or <a href="">注册!</a>
+                  Or <a href="/register">注册!</a>
                 </FormItem>
               </Form>
               <div className="login-footer">

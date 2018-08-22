@@ -101,6 +101,7 @@ class Video extends PureComponent {
 	constructor() {
 		super();
 		this.state = {};
+		this.uploadedFileName = null;
 		this.handleDeleteFile = this.handleDeleteFile.bind(this);
 	}
 
@@ -138,7 +139,8 @@ class Video extends PureComponent {
 		});
 	};
 
-	handleFileChange = (uuid, responseJSON) => {
+	handleFileChange = (name, uuid, responseJSON) => {
+		this.uploadedFileName = name;
 		this.props.form.setFieldsValue({
 			uuid
 		});
@@ -184,6 +186,8 @@ class Video extends PureComponent {
 	};
 
 	_confirm = async (data, isEdit) => {
+		const { getFieldValue } = this.props.form;
+		const { createVideo } = data;
 		if (isEdit) {
 			Modal.success({
 				title: '好消息',
@@ -196,12 +200,19 @@ class Video extends PureComponent {
 			Modal.success({
 				title: '好消息',
 				content: '创建视频成功了.',
-				onOk: () => {
-					this.props.history.push('/video');
+				onOk: async () => {
+					const job = await axios.post('/queue/create_job', {
+						id: createVideo.id,
+						file: this.uploadedFileName || getFieldValue('name'),
+						uuid: getFieldValue('uuid')
+					});
+					const { data, jobId, success } = job.data;
+					if (success) {
+						this.props.history.push('/video');
+					}
 				}
 			});
 		}
-		
 	};
 
 	_getQueryVariables = () => {
@@ -331,7 +342,7 @@ class Video extends PureComponent {
 									{videoId ? (
 										<Mutation
 											mutation={UPDATE_VIDEO_MUTATION}
-											onCompleted={data => this._confirm(data, true)}
+											onCompleted={(data) => this._confirm(data, true)}
 										>
 											{(mutation, { loading, error }) => {
 												this.mutation = mutation;
@@ -360,7 +371,7 @@ class Video extends PureComponent {
 									) : (
 										<Mutation
 											mutation={CREATE_VIDEO_MUTATION}
-											onCompleted={data => this._confirm(data, false)}
+											onCompleted={(data) => this._confirm(data, false)}
 										>
 											{(mutation, { loading, error }) => {
 												this.mutation = mutation;

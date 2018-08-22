@@ -44,8 +44,8 @@ class VideoUploader extends Component {
 		super();
 
 		this.state = {
-      uuid: ""
-    };
+			uuid: ''
+		};
 		this.uploadFiles = [];
 	}
 
@@ -56,7 +56,7 @@ class VideoUploader extends Component {
 		});
 		videoUploader.on('deleteComplete', async (id, reqJSON, isError) => {
 			const queue = await axios.delete(`/queue/${this.state.uuid}`);
-			this.props.handleFileDelete.apply(this, [queue]);
+			this.props.handleFileDelete.apply(this, [ queue ]);
 		});
 		videoUploader.on('validate', (data, buttonContainer) => {
 			if (!hasExtension(data.name, [ 'mp4', 'rm', 'mov', 'wmv', 'webm', 'ogg', 'avi', 'mkv' ])) {
@@ -77,15 +77,8 @@ class VideoUploader extends Component {
 		});
 		videoUploader.on('complete', async (id, name, responseJSON) => {
 			if (responseJSON && responseJSON.uuid) {
-        const job = await axios.post('/queue/create_job', {
-          file: name,
-					uuid: responseJSON.uuid[0]
-				});
-				const { data, jobId, success } = job.data;
-				if (success) {
-          this.setState({ uuid: responseJSON.uuid[0] });
-					this.props.handleFileChange.apply(this, [ jobId, responseJSON ]);
-				}
+				this.setState({ uuid: responseJSON.uuid[0] });
+				this.props.handleFileChange.apply(this, [ name, responseJSON.uuid[0], responseJSON ]);
 			}
 		});
 	}
