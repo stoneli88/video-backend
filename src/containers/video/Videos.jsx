@@ -49,18 +49,10 @@ const REMOVE_VIDEO = gql`
 	}
 `;
 
-const UPDATE_VIDEO = gql`
-	mutation UpdateVideoMutation($id: String!, $isEncoded: Boolean, $path: String) {
-		updateVideo(id: $id, isEncoded: $isEncoded, path: $path) {
-			id
-		}
-	}
-`;
-
 const handleCodeVideo = async (record) => {
 	try {
-		const process = await axios.get(`/queue/stats/${record.uuid}`);
-		console.log(process);
+		const videoAddress = await axios.get(`/video/play/${record.uuid}`);
+		console.log(videoAddress);
 	} catch (error) {
 		console.log(error);
 	}
@@ -111,7 +103,7 @@ const columns = [
 		title: '简述',
 		className: 'column-owner',
 		dataIndex: 'description',
-		width: 420
+		width: 520
 	},
 	{
 		title: '转码状态',
@@ -122,7 +114,7 @@ const columns = [
 			let status = {};
 			if (uuid && !path) {
 				status = (
-					<Tooltip title="视频已经在转码队列中, 可以手动刷新查看最新状态.">
+					<Tooltip title="视频已经在转码队列中, 请耐心等待...">
 						<span>
 							<Badge status="processing" style={{ width: '16px', height: '16px' }} />已经上传，转码队列中...
 						</span>
@@ -153,27 +145,14 @@ const columns = [
 	{
 		title: '操作',
 		key: 'operation',
-		width: 300,
+		width: 200,
 		render: (text, record) => {
 			return (
-				<Mutation mutation={UPDATE_VIDEO}>
-					{(mutation, { loading, error }) => {
-						this.updateVideoMutation = mutation;
-						return (
-							<ButtonGroup>
-								<Button type="default" onClick={() => handleCodeVideo.apply(this, [ record ])}>
-									<Icon type="sync" />同步
-								</Button>
-								<Button type="default">
-									<Icon type="picture" />截图
-								</Button>
-								<Button>
-									<Icon type="play-circle" />预览
-								</Button>
-							</ButtonGroup>
-						);
-					}}
-				</Mutation>
+				<ButtonGroup>
+					<Button type="default" onClick={() => handleCodeVideo.apply(this, [ record ])}>
+						<Icon type="play-circle" />预览
+					</Button>
+				</ButtonGroup>
 			);
 		}
 	}
