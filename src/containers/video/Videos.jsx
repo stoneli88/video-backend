@@ -3,13 +3,15 @@ import { Link } from 'react-router-dom';
 // Axios
 import axios from '../../axios';
 // ANTD.
-import { Layout, Table, Alert, Tooltip, Badge, Icon, Button, Input, Select, Row, Col } from 'antd';
+import { Layout, Table, Alert, Tooltip, Badge, Icon, Button, Input, Select, Row, Col, Modal } from 'antd';
 // Date.
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
 // Apollo.
 import { Query, Mutation } from 'react-apollo';
 import gql from 'graphql-tag';
+// Video player.
+import FlvPlayer from '../../components/player/FlvPlayer';
 // Stylesheet.
 import '../../assets/stylesheets/App.css';
 
@@ -49,119 +51,126 @@ const REMOVE_VIDEO = gql`
 	}
 `;
 
-const handleCodeVideo = async (record) => {
+const handleCodeVideo = async (record, VideosComponent) => {
 	try {
-		const videoAddress = await axios.get(`/video/play/${record.uuid}`);
-		console.log(videoAddress);
+		const videoInfo = await axios.get(`/video/play/${record.uuid}`);
+		const { mp4info, url } = videoInfo;
+		VideosComponent._openPreviewModal(url, mp4info);
 	} catch (error) {
 		console.log(error);
 	}
 };
 
-const columns = [
-	{
-		title: '名称',
-		dataIndex: 'name',
-		width: 350,
-		render: (text, record, index) => {
-			return (
-				<Tooltip title="点击查看视频详情">
-					<Link
-						to={{
-							pathname: '/video/edit',
-							search: `${record.id}`
-						}}
-					>
-						{text}
-					</Link>
-				</Tooltip>
-			);
-		}
-	},
-	{
-		title: '分类',
-		className: 'column-category',
-		dataIndex: 'category',
-		width: 100
-	},
-	{
-		title: '上传者',
-		className: 'column-owner',
-		dataIndex: 'owner',
-		width: 100
-	},
-	{
-		title: '上传时间',
-		className: 'column-createdTime',
-		dataIndex: 'createdAt',
-		width: 180,
-		render: (text) => {
-			return dayjs(text).format('YYYY-MM-DD HH:mm:ss');
-		}
-	},
-	{
-		title: '简述',
-		className: 'column-owner',
-		dataIndex: 'description',
-		width: 520
-	},
-	{
-		title: '转码状态',
-		className: 'column-status',
-		dataIndex: 'isEncoded',
-		render: (text, record) => {
-			const { uuid, path } = record;
-			let status = {};
-			if (uuid && !path) {
-				status = (
-					<Tooltip title="视频已经在转码队列中, 请耐心等待...">
-						<span>
-							<Badge status="processing" style={{ width: '16px', height: '16px' }} />已经上传，转码队列中...
-						</span>
+const makeQueueColumns = (VideosComponent) => {
+	return [
+		{
+			title: '名称',
+			dataIndex: 'name',
+			width: 350,
+			render: (text, record, index) => {
+				return (
+					<Tooltip title="点击查看视频详情">
+						<Link
+							to={{
+								pathname: '/video/edit',
+								search: `${record.id}`
+							}}
+						>
+							{text}
+						</Link>
 					</Tooltip>
 				);
 			}
-			if (uuid && path) {
-				status = (
-					<Tooltip title="视频转码成功了，可以点击预览按钮查看视频.">
-						<span>
-							<Badge status="success" style={{ width: '16px', height: '16px' }} />转码成功
-						</span>
-					</Tooltip>
+		},
+		{
+			title: '分类',
+			className: 'column-category',
+			dataIndex: 'category',
+			width: 100
+		},
+		{
+			title: '上传者',
+			className: 'column-owner',
+			dataIndex: 'owner',
+			width: 100
+		},
+		{
+			title: '上传时间',
+			className: 'column-createdTime',
+			dataIndex: 'createdAt',
+			width: 180,
+			render: (text) => {
+				return dayjs(text).format('YYYY-MM-DD HH:mm:ss');
+			}
+		},
+		{
+			title: '简述',
+			className: 'column-owner',
+			dataIndex: 'description',
+			width: 520
+		},
+		{
+			title: '转码状态',
+			className: 'column-status',
+			dataIndex: 'isEncoded',
+			render: (text, record) => {
+				const { uuid, path } = record;
+				let status = {};
+				if (uuid && !path) {
+					status = (
+						<Tooltip title="视频已经在转码队列中, 请耐心等待...">
+							<span>
+								<Badge status="processing" style={{ width: '16px', height: '16px' }} />已经上传，转码队列中...
+							</span>
+						</Tooltip>
+					);
+				}
+				if (uuid && path) {
+					status = (
+						<Tooltip title="视频转码成功了，可以点击预览按钮查看视频.">
+							<span>
+								<Badge status="success" style={{ width: '16px', height: '16px' }} />转码成功
+							</span>
+						</Tooltip>
+					);
+				}
+				if (!uuid && !path) {
+					status = (
+						<Tooltip title="视频尚未上传，请点击视频名称到视频详情页面上传.">
+							<span>
+								<Badge status="warning" style={{ width: '16px', height: '16px' }} />等待上传
+							</span>
+						</Tooltip>
+					);
+				}
+				return status;
+			}
+		},
+		{
+			title: '操作',
+			key: 'operation',
+			width: 200,
+			render: (text, record) => {
+				return (
+					<ButtonGroup>
+						<Button type="default" onClick={() => handleCodeVideo.apply(this, [ record, VideosComponent ])}>
+							<Icon type="play-circle" />预览
+						</Button>
+					</ButtonGroup>
 				);
 			}
-			if (!uuid && !path) {
-				status = (
-					<Tooltip title="视频尚未上传，请点击视频名称到视频详情页面上传.">
-						<span>
-							<Badge status="warning" style={{ width: '16px', height: '16px' }} />等待上传
-						</span>
-					</Tooltip>
-				);
-			}
-			return status;
 		}
-	},
-	{
-		title: '操作',
-		key: 'operation',
-		width: 200,
-		render: (text, record) => {
-			return (
-				<ButtonGroup>
-					<Button type="default" onClick={() => handleCodeVideo.apply(this, [ record ])}>
-						<Icon type="play-circle" />预览
-					</Button>
-				</ButtonGroup>
-			);
-		}
-	}
-];
+	];
+};
 
 class Videos extends PureComponent {
 	constructor() {
 		super();
 		this.state = {
+			videoType: '',
+			videoUrl: '',
+			mimeCodec: '',
+			modalVisible: false,
 			filter: {},
 			selectedRowKeys: []
 		};
@@ -185,6 +194,27 @@ class Videos extends PureComponent {
 
 	onSelectChange = (selectedRowKeys) => {
 		this.setState({ selectedRowKeys });
+	};
+
+	handleModalOk = (e) => {
+		this.setState({
+			modalVisible: false
+		});
+	};
+
+	handleModalCancel = (e) => {
+		this.setState({
+			modalVisible: false
+		});
+	};
+
+	_openPreviewModal = (url, mp4info) => {
+		this.setState({
+			videoType: 'mp4',
+			videoUrl: url,
+			mimeCodec: mp4info,
+			modalVisible: true
+		});
 	};
 
 	_getQueryVariables = () => {
@@ -222,6 +252,20 @@ class Videos extends PureComponent {
 		const hasSelected = selectedRowKeys.length > 0 && selectedRowKeys.length < 2;
 		return (
 			<Layout className="App container-dashboard" style={{ borderRadius: '5px' }}>
+				<Modal
+					title="视频预览"
+					visible={this.state.modalVisible}
+					onOk={this.handleModalOk}
+					onCancel={this.handleModalCancel}
+				>
+					<FlvPlayer
+						type={this.state.videoType}
+						url={this.state.videoUrl}
+						mimeCodec={this.state.mimeCodec}
+						cors={true}
+						isLive={false}
+					/>
+				</Modal>
 				<Row gutter={24} style={{ margin: '10px 0' }}>
 					<Col span={18}>
 						<InputGroup compact>
@@ -272,7 +316,7 @@ class Videos extends PureComponent {
 								style={{ margin: '12px', background: '#fff', marginTop: '0' }}
 								bordered
 								rowSelection={rowSelection}
-								columns={columns}
+								columns={makeQueueColumns.apply(this, [ this ])}
 								dataSource={this._getTableColumnData(data.videos)}
 								pagination={{ pageSize: 20 }}
 							/>

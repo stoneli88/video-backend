@@ -32,6 +32,7 @@
     "extract-text-webpack-plugin": "3.0.2",
     "file-loader": "1.1.5",
     "fine-uploader": "^5.16.2",
+    "flv.js": "https://github.com/Bilibili/flv.js.git",
     "fs-extra": "3.0.1",
     "graphql": "^0.13.2",
     "html-webpack-plugin": "2.29.0",
