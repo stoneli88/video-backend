@@ -54,10 +54,22 @@ const REMOVE_VIDEO = gql`
 const handleCodeVideo = async (record, VideosComponent) => {
 	try {
 		const videoInfo = await axios.get(`/video/play/${record.uuid}`);
-		const { mp4info, url } = videoInfo;
-		VideosComponent._openPreviewModal(url, mp4info);
+		const { mp4info, url, xml } = videoInfo.data.video;
+		fetchMPD(xml, (res, resXML) => {
+			VideosComponent._openPreviewModal(url, mp4info, res);
+		});
 	} catch (error) {
 		console.log(error);
+	}
+	function fetchMPD(url, callback) {
+		var xhr = new XMLHttpRequest();
+		xhr.open('get', `http://${url}`, true);
+		xhr.responseType = 'document';
+		xhr.overrideMimeType('text/xml');
+		xhr.onload = function() {
+			callback(xhr.response, xhr.responseXML);
+		};
+		xhr.send();
 	}
 };
 
@@ -170,6 +182,7 @@ class Videos extends PureComponent {
 			videoType: '',
 			videoUrl: '',
 			mimeCodec: '',
+			videoMDS: null,
 			modalVisible: false,
 			filter: {},
 			selectedRowKeys: []
@@ -208,12 +221,13 @@ class Videos extends PureComponent {
 		});
 	};
 
-	_openPreviewModal = (url, mp4info) => {
+	_openPreviewModal = (url, mp4info, res) => {
 		this.setState({
 			videoType: 'mp4',
-			videoUrl: url,
+			videoUrl: `http://${url}`,
 			mimeCodec: mp4info,
-			modalVisible: true
+			modalVisible: true,
+			videoMDS: res
 		});
 	};
 
@@ -259,6 +273,7 @@ class Videos extends PureComponent {
 					onCancel={this.handleModalCancel}
 				>
 					<FlvPlayer
+						mpd={this.state.videoMDS}
 						type={this.state.videoType}
 						url={this.state.videoUrl}
 						mimeCodec={this.state.mimeCodec}

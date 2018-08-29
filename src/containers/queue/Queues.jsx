@@ -1,5 +1,8 @@
 import React, { PureComponent } from 'react';
 import { Link } from 'react-router-dom';
+// Date.
+import dayjs from 'dayjs';
+import 'dayjs/locale/zh-cn';
 // Axios
 import axios from '../../axios';
 // ANTD.
@@ -22,10 +25,6 @@ const handleRemoveJob = async (record, QueueComponent) => {
 		message.error(error, 10);
 		console.log(error);
 	}
-};
-
-const handleRestartJob = async (record) => {
-	console.log(record);
 };
 
 const makeQueueColumns = (QueueComponent) => {
@@ -59,7 +58,7 @@ const makeQueueColumns = (QueueComponent) => {
 			dataIndex: 'created',
 			width: 150,
 			render: (text, record, index) => {
-				return <span>{text}</span>;
+				return dayjs(text).format('YYYY-MM-DD HH:mm:ss');
 			}
 		},
 		{
@@ -77,16 +76,6 @@ const makeQueueColumns = (QueueComponent) => {
 			render: (text, record, index) => {
 				return (
 					<div>
-						<Popconfirm
-							title="请确认要重新开始这条任务吗?"
-							onConfirm={() => handleRestartJob.apply(this, [ record ])}
-							okText="确定"
-							cancelText="取消"
-						>
-							<Button type="default" style={{ marginRight: '10px' }}>
-								<Icon type="reload" />重试任务
-							</Button>
-						</Popconfirm>
 						<Popconfirm
 							title="请确认要删除这条任务吗?"
 							onConfirm={() => handleRemoveJob.apply(this, [ record, QueueComponent ])}
@@ -113,7 +102,7 @@ class Queue extends PureComponent {
 			size: 100,
 			queues: []
 		};
-		this.currentJobStats = 'waiting';
+		this.currentJobStats = 'active';
 		this.handleJobFilterStatusChange = this.handleJobFilterStatusChange.bind(this);
 	}
 

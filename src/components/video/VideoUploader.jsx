@@ -67,13 +67,13 @@ class VideoUploader extends Component {
 				return false;
 			}
 			// file counts start with 0.
-			if (videoUploader.methods.getNetUploads() >= 1) {
-				Modal.error({
-					title: '请注意',
-					content: '目前只允许上传一个文件.'
-				});
-				return false;
-			}
+			// if (videoUploader.methods.getNetUploads() >= 1) {
+			// 	Modal.error({
+			// 		title: '请注意',
+			// 		content: '目前只允许上传一个文件.'
+			// 	});
+			// 	return false;
+			// }
 		});
 		videoUploader.on('complete', async (id, name, responseJSON) => {
 			if (responseJSON && responseJSON.uuid) {
