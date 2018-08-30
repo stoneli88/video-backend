@@ -50,7 +50,7 @@ const CREATE_VIDEO_MUTATION = gql`
 		$name: String
 		$description: String
 		$category: String
-		$isEncoded: Boolean
+		$isEncoded: String
 		$path: String
 	) {
 		createVideo(
@@ -73,7 +73,7 @@ const UPDATE_VIDEO_MUTATION = gql`
 		$name: String
 		$description: String
 		$category: String
-		$isEncoded: Boolean
+		$isEncoded: String
 		$path: String
 	) {
 		updateVideo(
@@ -128,7 +128,7 @@ class Video extends PureComponent {
 						name: getFieldValue('name'),
 						description: getFieldValue('description'),
 						category: getFieldValue('category'),
-						isEncoded: false,
+						isEncoded: 'No',
 						path: ''
 					};
 				}
@@ -176,7 +176,7 @@ class Video extends PureComponent {
 							name: getFieldValue('name'),
 							description: getFieldValue('description'),
 							category: getFieldValue('category'),
-							isEncoded: false,
+							isEncoded: 'No',
 							path: ''
 						}
 					});
@@ -191,7 +191,7 @@ class Video extends PureComponent {
 		if (isEdit) {
 			Modal.success({
 				title: '好消息',
-				content: '创建编辑成功了.',
+				content: '编辑视频成功了.',
 				onOk: () => {
 					this.props.history.push('/video');
 				}

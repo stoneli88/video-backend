@@ -126,7 +126,7 @@ const makeQueueColumns = (VideosComponent) => {
 			className: 'column-status',
 			dataIndex: 'isEncoded',
 			render: (text, record) => {
-				const { uuid, path } = record;
+				const { uuid, path, isEncoded } = record;
 				let status = {};
 				if (uuid && !path) {
 					status = (
@@ -146,11 +146,11 @@ const makeQueueColumns = (VideosComponent) => {
 						</Tooltip>
 					);
 				}
-				if (!uuid && !path) {
+				if (isEncoded === 'ERROR') {
 					status = (
-						<Tooltip title="视频尚未上传，请点击视频名称到视频详情页面上传.">
+						<Tooltip title="视频转码失败，正在重试，最终状态可以在队列中查看.">
 							<span>
-								<Badge status="warning" style={{ width: '16px', height: '16px' }} />等待上传
+								<Badge status="warning" style={{ width: '16px', height: '16px' }} />转码失败
 							</span>
 						</Tooltip>
 					);
