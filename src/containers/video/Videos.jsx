@@ -55,22 +55,20 @@ const handleCodeVideo = async (record, VideosComponent) => {
 	try {
 		const videoInfo = await axios.get(`/video/play/${record.uuid}`);
 		const { mp4info, url, xml } = videoInfo.data.video;
-		fetchMPD(xml, (res, resXML) => {
-			VideosComponent._openPreviewModal(url, mp4info, res);
-		});
+		VideosComponent._openPreviewModal(url, mp4info, xml);
 	} catch (error) {
 		console.log(error);
 	}
-	function fetchMPD(url, callback) {
-		var xhr = new XMLHttpRequest();
-		xhr.open('get', `http://${url}`, true);
-		xhr.responseType = 'document';
-		xhr.overrideMimeType('text/xml');
-		xhr.onload = function() {
-			callback(xhr.response, xhr.responseXML);
-		};
-		xhr.send();
-	}
+	// function fetchMPD(url, callback) {
+	// 	var xhr = new XMLHttpRequest();
+	// 	xhr.open('get', `http://${url}`, true);
+	// 	xhr.responseType = 'document';
+	// 	xhr.overrideMimeType('text/xml');
+	// 	xhr.onload = function() {
+	// 		callback(xhr.response, xhr.responseXML);
+	// 	};
+	// 	xhr.send();
+	// }
 };
 
 const makeQueueColumns = (VideosComponent) => {

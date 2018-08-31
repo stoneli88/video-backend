@@ -11,7 +11,7 @@ const FlvPlayer = ({ type, url, mpd, mimeCodec, ...props }) => {
 		const player = MediaPlayer().create();
 
 		if (supportMediaSource) {
-			player.initialize(videoElement, mpd, true);
+			player.initialize(videoElement, `http://${mpd}`, true);
 		}
 	};
 

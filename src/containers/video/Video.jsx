@@ -91,7 +91,6 @@ const UPDATE_VIDEO_MUTATION = gql`
 `;
 
 // updateVideo
-
 const formItemLayout = {
 	labelCol: { span: 2 },
 	wrapperCol: { span: 14 }
@@ -119,7 +118,7 @@ class Video extends PureComponent {
 						name: getFieldValue('name'),
 						description: getFieldValue('description'),
 						category: getFieldValue('category'),
-						isEncoded: getFieldValue('isEncoded'),
+						isEncoded: 'Yes',
 						path: getFieldValue('path')
 					};
 				} else {
