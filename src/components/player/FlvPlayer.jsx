@@ -1,7 +1,7 @@
 import React from 'react';
 import { MediaPlayer } from 'dashjs';
 
-const FlvPlayer = ({ type, url, mpd, mimeCodec, ...props }) => {
+const FlvPlayer = ({ type, mpd, mimeCodec, ...props }) => {
 	const supportMediaSource =
 		'MediaSource' in window && MediaSource.isTypeSupported(`video/mp4; codecs="${mimeCodec.trim()}"`);
 

@@ -54,21 +54,11 @@ const REMOVE_VIDEO = gql`
 const handleCodeVideo = async (record, VideosComponent) => {
 	try {
 		const videoInfo = await axios.get(`/video/play/${record.uuid}`);
-		const { mp4info, url, xml } = videoInfo.data.video;
-		VideosComponent._openPreviewModal(url, mp4info, xml);
+		const { mp4info, xml } = videoInfo.data.video;
+		VideosComponent._openPreviewModal(mp4info, xml);
 	} catch (error) {
 		console.log(error);
 	}
-	// function fetchMPD(url, callback) {
-	// 	var xhr = new XMLHttpRequest();
-	// 	xhr.open('get', `http://${url}`, true);
-	// 	xhr.responseType = 'document';
-	// 	xhr.overrideMimeType('text/xml');
-	// 	xhr.onload = function() {
-	// 		callback(xhr.response, xhr.responseXML);
-	// 	};
-	// 	xhr.send();
-	// }
 };
 
 const makeQueueColumns = (VideosComponent) => {
@@ -178,7 +168,6 @@ class Videos extends PureComponent {
 		super();
 		this.state = {
 			videoType: '',
-			videoUrl: '',
 			mimeCodec: '',
 			videoMDS: null,
 			modalVisible: false,
@@ -219,10 +208,9 @@ class Videos extends PureComponent {
 		});
 	};
 
-	_openPreviewModal = (url, mp4info, res) => {
+	_openPreviewModal = (mp4info, res) => {
 		this.setState({
 			videoType: 'mp4',
-			videoUrl: `http://${url}`,
 			mimeCodec: mp4info,
 			modalVisible: true,
 			videoMDS: res
@@ -273,7 +261,6 @@ class Videos extends PureComponent {
 					<FlvPlayer
 						mpd={this.state.videoMDS}
 						type={this.state.videoType}
-						url={this.state.videoUrl}
 						mimeCodec={this.state.mimeCodec}
 						cors={true}
 						isLive={false}
