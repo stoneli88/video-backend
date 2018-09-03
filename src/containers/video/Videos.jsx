@@ -66,7 +66,7 @@ const makeQueueColumns = (VideosComponent) => {
 		{
 			title: '名称',
 			dataIndex: 'name',
-			width: 350,
+			width: 280,
 			render: (text, record, index) => {
 				return (
 					<Tooltip title="点击查看视频详情">
@@ -107,12 +107,13 @@ const makeQueueColumns = (VideosComponent) => {
 			title: '简述',
 			className: 'column-owner',
 			dataIndex: 'description',
-			width: 520
+			width: 400
 		},
 		{
 			title: '转码状态',
 			className: 'column-status',
 			dataIndex: 'isEncoded',
+			width: 120,
 			render: (text, record) => {
 				const { uuid, path, isEncoded } = record;
 				let status = {};
@@ -149,7 +150,7 @@ const makeQueueColumns = (VideosComponent) => {
 		{
 			title: '操作',
 			key: 'operation',
-			width: 200,
+			width: 100,
 			render: (text, record) => {
 				return (
 					<ButtonGroup>
@@ -267,7 +268,7 @@ class Videos extends PureComponent {
 					/>
 				</Modal>
 				<Row gutter={24} style={{ margin: '10px 0' }}>
-					<Col span={18}>
+					<Col span={16}>
 						<InputGroup compact>
 							<Select defaultValue="name">
 								<Option value="name">名称</Option>
@@ -276,7 +277,7 @@ class Videos extends PureComponent {
 							<Search enterButton style={{ width: '50%' }} placeholder="请输入搜索内容" />
 						</InputGroup>
 					</Col>
-					<Col span={6} style={{ textAlign: 'right' }}>
+					<Col span={8} style={{ textAlign: 'right' }}>
 						<Tooltip title="上传视频的大小限制在1G以内">
 							<Link
 								to={{
