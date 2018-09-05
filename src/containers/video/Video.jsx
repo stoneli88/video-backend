@@ -185,8 +185,6 @@ class Video extends PureComponent {
 	};
 
 	_confirm = async (data, isEdit) => {
-		const { getFieldValue } = this.props.form;
-		const { createVideo } = data;
 		if (isEdit) {
 			Modal.success({
 				title: '好消息',
@@ -200,15 +198,7 @@ class Video extends PureComponent {
 				title: '好消息',
 				content: '创建视频成功了.',
 				onOk: async () => {
-					const job = await axios.post('/queue/create_job', {
-						id: createVideo.id,
-						file: this.uploadedFileName || getFieldValue('name'),
-						uuid: getFieldValue('uuid')
-					});
-					const { data, jobId, success } = job.data;
-					if (success) {
-						this.props.history.push('/video');
-					}
+					this.props.history.push('/video');
 				}
 			});
 		}

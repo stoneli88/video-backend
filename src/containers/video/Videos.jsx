@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 // Axios
 import axios from '../../axios';
 // ANTD.
-import { Layout, Table, Alert, Tooltip, Badge, Icon, Button, Input, Select, Row, Col, Modal } from 'antd';
+import { Layout, Table, Alert, Tooltip, Badge, Icon, Button, Input, Select, Row, Col, Modal, Spin } from 'antd';
 // Date.
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
@@ -61,6 +61,8 @@ const handleCodeVideo = async (record, VideosComponent) => {
 	}
 };
 
+const handleCreateJob = async (record, VideosComponent, type) => {};
+
 const makeQueueColumns = (VideosComponent) => {
 	return [
 		{
@@ -98,7 +100,7 @@ const makeQueueColumns = (VideosComponent) => {
 			title: '上传时间',
 			className: 'column-createdTime',
 			dataIndex: 'createdAt',
-			width: 180,
+			width: 160,
 			render: (text) => {
 				return dayjs(text).format('YYYY-MM-DD HH:mm:ss');
 			}
@@ -107,39 +109,59 @@ const makeQueueColumns = (VideosComponent) => {
 			title: '简述',
 			className: 'column-owner',
 			dataIndex: 'description',
-			width: 400
+			width: 380
 		},
 		{
-			title: '转码状态',
+			title: '状态',
 			className: 'column-status',
 			dataIndex: 'isEncoded',
-			width: 120,
+			align: 'center',
+			width: 80,
 			render: (text, record) => {
 				const { uuid, path, isEncoded } = record;
 				let status = {};
-				if (uuid && !path) {
+				if (isEncoded === 'RUNING') {
 					status = (
-						<Tooltip title="视频已经在转码队列中, 请耐心等待...">
+						<Tooltip title="视频已经在转码队列中.">
 							<span>
-								<Badge status="processing" style={{ width: '16px', height: '16px' }} />已经上传，转码队列中...
+								<Spin size="large" />
 							</span>
 						</Tooltip>
 					);
-				}
-				if (uuid && path) {
+				} else if (isEncoded === 'Yes') {
 					status = (
 						<Tooltip title="视频转码成功了，可以点击预览按钮查看视频.">
 							<span>
-								<Badge status="success" style={{ width: '16px', height: '16px' }} />转码成功
+								<Icon
+									style={{ fontSize: '48px', marginLeft: '0' }}
+									type="check-circle"
+									theme="twoTone"
+									twoToneColor="#52c41a"
+								/>
 							</span>
 						</Tooltip>
 					);
-				}
-				if (isEncoded === 'ERROR') {
+				} else if (isEncoded === 'ERROR') {
 					status = (
 						<Tooltip title="视频转码失败，正在重试，最终状态可以在队列中查看.">
 							<span>
-								<Badge status="warning" style={{ width: '16px', height: '16px' }} />转码失败
+								<Icon
+									style={{ fontSize: '48px', marginLeft: '0' }}
+									type="warning"
+									theme="twoTone"
+									twoToneColor="#eb2f96"
+								/>
+							</span>
+						</Tooltip>
+					);
+				} else {
+					status = (
+						<Tooltip title="视频尚未转码，请进行转码操作.">
+							<span>
+								<Icon
+									style={{ fontSize: '48px', marginLeft: '0' }}
+									type="clock-circle"
+								/>
 							</span>
 						</Tooltip>
 					);
@@ -150,13 +172,42 @@ const makeQueueColumns = (VideosComponent) => {
 		{
 			title: '操作',
 			key: 'operation',
-			width: 100,
+			width: 140,
 			render: (text, record) => {
 				return (
 					<ButtonGroup>
-						<Button type="default" onClick={() => handleCodeVideo.apply(this, [ record, VideosComponent ])}>
-							<Icon type="play-circle" />预览
-						</Button>
+						<Tooltip title="生成符合HLS格式的播放源。">
+							<Button
+								type="default"
+								onClick={() => handleCreateJob.apply(this, [ record, VideosComponent, 'hls' ])}
+							>
+								<Icon
+									style={{ fontSize: '16px', verticalAlign: '-0.25em' }}
+									type="youtube"
+									theme="outlined"
+								/>
+							</Button>
+						</Tooltip>
+						<Tooltip title="生成符合下载需要的视频源。">
+							<Button
+								type="default"
+								onClick={() => handleCreateJob.apply(this, [ record, VideosComponent, 'download' ])}
+							>
+								<Icon
+									style={{ fontSize: '16px', verticalAlign: '-0.25em' }}
+									type="cloud-download"
+									theme="outlined"
+								/>
+							</Button>
+						</Tooltip>
+						<Tooltip title="可以试看视频是否可以成功播放。">
+							<Button
+								type="default"
+								onClick={() => handleCodeVideo.apply(this, [ record, VideosComponent ])}
+							>
+								<Icon style={{ fontSize: '16px', verticalAlign: '-0.25em' }} type="play-circle" />
+							</Button>
+						</Tooltip>
 					</ButtonGroup>
 				);
 			}
