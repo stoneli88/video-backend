@@ -100,7 +100,7 @@ class Video extends PureComponent {
 	constructor() {
 		super();
 		this.state = {};
-		this.uploadedFileName = null;
+		this.uploadedFiles = [];
 		this.handleDeleteFile = this.handleDeleteFile.bind(this);
 	}
 
@@ -138,15 +138,16 @@ class Video extends PureComponent {
 		});
 	};
 
-	handleFileChange = (name, uuid, responseJSON) => {
-		this.uploadedFileName = name;
+	handleFileChange = (name, uuid, totalFiles) => {
+		this.uploadedFiles = totalFiles;
 		this.props.form.setFieldsValue({
 			uuid
 		});
 	};
 
 	// 来自上传控件的回调
-	handleFileDelete = () => {
+	handleFileDelete = (files, xhr) => {
+		this.uploadedFiles = files;
 		this.props.form.setFieldsValue({
 			uuid: ''
 		});

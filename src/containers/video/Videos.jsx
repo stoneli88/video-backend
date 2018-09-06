@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 // Axios
 import axios from '../../axios';
 // ANTD.
-import { Layout, Table, Alert, Tooltip, Badge, Icon, Button, Input, Select, Row, Col, Modal, Spin } from 'antd';
+import { Layout, Table, Alert, Tooltip, Icon, Button, Input, Select, Row, Col, Modal, Spin } from 'antd';
 // Date.
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
@@ -61,7 +61,10 @@ const handleCodeVideo = async (record, VideosComponent) => {
 	}
 };
 
-const handleCreateJob = async (record, VideosComponent, type) => {};
+const handleCreateJob = async (record, VideosComponent, type) => {
+	console.log(record);
+	const { id, uuid, name, isEncoded  } = record;
+};
 
 const makeQueueColumns = (VideosComponent) => {
 	return [
@@ -100,7 +103,7 @@ const makeQueueColumns = (VideosComponent) => {
 			title: '上传时间',
 			className: 'column-createdTime',
 			dataIndex: 'createdAt',
-			width: 160,
+			width: 140,
 			render: (text) => {
 				return dayjs(text).format('YYYY-MM-DD HH:mm:ss');
 			}
@@ -172,7 +175,8 @@ const makeQueueColumns = (VideosComponent) => {
 		{
 			title: '操作',
 			key: 'operation',
-			width: 140,
+			width: 160,
+			align: 'center',
 			render: (text, record) => {
 				return (
 					<ButtonGroup>

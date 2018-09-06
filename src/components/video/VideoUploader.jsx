@@ -44,22 +44,22 @@ class VideoUploader extends Component {
 		super();
 
 		this.state = {
-			uuid: ''
+			uuid: '',
+			uploadFiles: []
 		};
 		this.uploadFiles = [];
 	}
 
 	componentDidMount() {
-		videoUploader.on('submit', (id, name) => {
-			this.uploadFiles.push({ submittedFile: id, submittedFileName: name });
-			return true;
-		});
 		videoUploader.on('deleteComplete', async (id, reqJSON, isError) => {
 			const queue = await axios.delete(`/queue/${this.state.uuid}`);
-			this.props.handleFileDelete.apply(this, [ queue ]);
+			this.uploadFiles = this.uploadFiles.filter((file) => {
+				return file.submittedFileId !== this.state.uuid;
+			})
+			this.props.handleFileDelete.apply(this, [this.uploadFiles, queue]);
 		});
 		videoUploader.on('validate', (data, buttonContainer) => {
-			if (!hasExtension(data.name, [ 'mp4', 'rm', 'mov', 'wmv', 'webm', 'ogg', 'avi', 'mkv' ])) {
+			if (!hasExtension(data.name, [ 'mp4', 'rm', 'mov', 'wmv', 'webm', 'ogg', 'avi', 'mkv', 'jpg', 'png' ])) {
 				Modal.error({
 					title: '请注意',
 					content: '上传文件不符合要求'
@@ -77,8 +77,9 @@ class VideoUploader extends Component {
 		});
 		videoUploader.on('complete', async (id, name, responseJSON) => {
 			if (responseJSON && responseJSON.uuid) {
+				this.uploadFiles.push({ submittedFileId: responseJSON.uuid[0], submittedFileName: name });
 				this.setState({ uuid: responseJSON.uuid[0] });
-				this.props.handleFileChange.apply(this, [ name, responseJSON.uuid[0], responseJSON ]);
+				this.props.handleFileChange.apply(this, [name, responseJSON.uuid[0], this.uploadFiles ]);
 			}
 		});
 	}
