@@ -25,7 +25,10 @@ const VIDEOS_QUERY = gql`
 	query VideoQuery($filter: String, $first: Int, $skip: Int, $orderBy: VideoOrderByInput) {
 		videos(filter: $filter, first: $first, skip: $skip, orderBy: $orderBy) {
 			id
-			uuid
+			mov_uuid
+			cover_uuid
+			mov_name
+			cover_name
 			name
 			description
 			category {
@@ -35,10 +38,11 @@ const VIDEOS_QUERY = gql`
 			owner {
 				name
 			}
-			path
+			viewnumber
+			likes
+			dislikes
 			isEncoded
 			createdAt
-			updatedAt
 		}
 	}
 `;

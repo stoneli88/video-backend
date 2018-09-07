@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Modal } from 'antd';
 import axios from '../../axios';
 import Gallery from '../react-fine-upload/gallery/index';
-import FineUploaderTraditional from 'fine-uploader-wrappers';
+import videoUploader from './uploader';
 import '../react-fine-upload/gallery/gallery.css';
 
 // Test file extension.
@@ -10,53 +10,25 @@ function hasExtension(fileName, exts) {
 	return new RegExp('(' + exts.join('|').replace(/\./g, '\\.') + ')$').test(fileName);
 }
 
-// declare a new uploader instance.
-const videoUploader = new FineUploaderTraditional({
-	options: {
-		fileSizeOnSubmit: true,
-		autoUpload: true,
-		maxConnections: 5,
-		chunking: {
-			enabled: true,
-			partSize: 1000000,
-			concurrent: {
-				enabled: true
-			}
-		},
-		deleteFile: {
-			enabled: true,
-			endpoint: 'http://127.0.0.1:8080/api/upload'
-		},
-		request: {
-			endpoint: 'http://127.0.0.1:8080/api/uploads'
-		},
-		retry: {
-			enableAuto: true
-		},
-		resume: {
-			enabled: true
-		}
-	}
-});
-
 class VideoUploader extends Component {
 	constructor() {
 		super();
-
-		this.state = {
-			uuid: '',
-			uploadFiles: []
-		};
 		this.uploadFiles = [];
 	}
 
 	componentDidMount() {
 		videoUploader.on('deleteComplete', async (id, reqJSON, isError) => {
-			const queue = await axios.delete(`/queue/${this.state.uuid}`);
+			let uuid = null;
+			this.uploadFiles.forEach((file) => {
+				if (file.cid === id) {
+					uuid = id;
+				}
+			});
 			this.uploadFiles = this.uploadFiles.filter((file) => {
-				return file.submittedFileId !== this.state.uuid;
-			})
-			this.props.handleFileDelete.apply(this, [this.uploadFiles, queue]);
+				return file.cid !== id;
+			});
+			const queue = await axios.delete(`/queue/${uuid}`);
+			this.props.handleFileDelete.apply(this, [ this.uploadFiles, queue ]);
 		});
 		videoUploader.on('validate', (data, buttonContainer) => {
 			if (!hasExtension(data.name, [ 'mp4', 'rm', 'mov', 'wmv', 'webm', 'ogg', 'avi', 'mkv', 'jpg', 'png' ])) {
@@ -67,19 +39,18 @@ class VideoUploader extends Component {
 				return false;
 			}
 			// file counts start with 0.
-			// if (videoUploader.methods.getNetUploads() >= 1) {
-			// 	Modal.error({
-			// 		title: '请注意',
-			// 		content: '目前只允许上传一个文件.'
-			// 	});
-			// 	return false;
-			// }
+			if (videoUploader.methods.getNetUploads() >= 2) {
+				Modal.error({
+					title: '请注意',
+					content: '目前只允许上传一个视频文件和一个封面图片.'
+				});
+				return false;
+			}
 		});
 		videoUploader.on('complete', async (id, name, responseJSON) => {
 			if (responseJSON && responseJSON.uuid) {
-				this.uploadFiles.push({ submittedFileId: responseJSON.uuid[0], submittedFileName: name });
-				this.setState({ uuid: responseJSON.uuid[0] });
-				this.props.handleFileChange.apply(this, [name, responseJSON.uuid[0], this.uploadFiles ]);
+				this.uploadFiles.push({ cid: id, submittedFileId: responseJSON.uuid[0], submittedFileName: name });
+				this.props.handleFileChange.apply(this, [ name, responseJSON.uuid[0], this.uploadFiles ]);
 			}
 		});
 	}
@@ -89,7 +60,7 @@ class VideoUploader extends Component {
 	}
 }
 
-export default VideoUploader;
+export { VideoUploader, hasExtension };
 
 // const queueStats = await axios.get('/queue/stats', {
 // 	params: {

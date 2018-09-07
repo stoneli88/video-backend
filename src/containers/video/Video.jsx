@@ -7,7 +7,8 @@ import { Layout, Form, Input, Button, Select, Alert, Modal } from 'antd';
 import { Mutation, Query } from 'react-apollo';
 import gql from 'graphql-tag';
 // Upload.
-import VideoUploader from '../../components/video/VideoUploader';
+import { VideoUploader, hasExtension } from '../../components/video/VideoUploader';
+import uploader from '../../components/video/uploader';
 // Stylesheet.
 import './style.css';
 
@@ -27,7 +28,10 @@ const VIDEOS_QUERY = gql`
 	query VideoQuery($filter: String, $first: Int, $skip: Int, $orderBy: VideoOrderByInput) {
 		videos(filter: $filter, first: $first, skip: $skip, orderBy: $orderBy) {
 			id
-			uuid
+			mov_uuid
+			cover_uuid
+			mov_name
+			cover_name
 			name
 			description
 			category {
@@ -37,7 +41,9 @@ const VIDEOS_QUERY = gql`
 			owner {
 				name
 			}
-			path
+			viewnumber
+			likes
+			dislikes
 			isEncoded
 			createdAt
 		}
@@ -46,20 +52,28 @@ const VIDEOS_QUERY = gql`
 
 const CREATE_VIDEO_MUTATION = gql`
 	mutation CreateVideoMutation(
-		$uuid: String
+		$mov_uuid: String
+		$cover_uuid: String
+		$mov_name: String
+		$cover_name: String
 		$name: String
 		$description: String
 		$category: String
 		$isEncoded: String
-		$path: String
+		$hd: Boolean
+		$keyword: String
 	) {
 		createVideo(
-			uuid: $uuid
-			name: $name
-			description: $description
-			category: $category
-			isEncoded: $isEncoded
-			path: $path
+			mov_uuid: $mov_uuid
+			cover_uuid: $cover_uuid,
+			mov_name: $mov_name,
+			cover_name,
+			name,
+			description,
+			category,
+			isEncoded,
+			hd,
+			keyword
 		) {
 			id
 		}
@@ -68,22 +82,38 @@ const CREATE_VIDEO_MUTATION = gql`
 
 const UPDATE_VIDEO_MUTATION = gql`
 	mutation UpdateVideoMutation(
-		$id: String!
-		$uuid: String
+		$id: String
 		$name: String
 		$description: String
 		$category: String
 		$isEncoded: String
-		$path: String
+		$channel: String
+		$duration: String
+		$framerate: String
+		$hd: Boolean
+		$keyword: String
+		$viewnumber: String
+		$likes: String
+		$dislikes: String
+		$mov_url: String
+		$cover_url: String
 	) {
 		updateVideo(
-			id: $id
-			uuid: $uuid
-			name: $name
-			description: $description
-			category: $category
-			isEncoded: $isEncoded
-			path: $path
+		id: $id
+		name: $name
+		description: $description
+		category: $category
+		isEncoded: $isEncoded
+		channel: $channel
+		duration: $duration
+		framerate: $framerate
+		hd: $hd
+		keyword: $keyword
+		viewnumber: $viewnumber
+		likes: $likes
+		dislikes: $dislikes
+		mov_url: $mov_url
+		cover_url: $cover_url
 		) {
 			id
 		}
@@ -104,36 +134,56 @@ class Video extends PureComponent {
 		this.handleDeleteFile = this.handleDeleteFile.bind(this);
 	}
 
+	componentDidMount() {
+		uploader.methods.clearStoredFiles();
+	}
+
 	handleSubmit = (e) => {
 		e.preventDefault();
 		let variables = {};
 		const vid = this.props.location.search ? this.props.location.search.replace('?', '').trim() : '';
 		const { getFieldValue } = this.props.form;
 		this.props.form.validateFields((err, values) => {
+			const newFiles = {};
+			let uploadedFiles = uploader.methods.getUploads();
+			uploadedFiles = uploadedFiles.filter((file) => {
+				return file.status === 'upload successful'
+			});
+			uploadedFiles = uploadedFiles.map((file) => {
+				if (hasExtension(file.originalName, ['jpg', 'png'])) {
+					newFiles['image_name'] = file.originalName;
+					newFiles['img_uuid'] = file.uuid
+				} else {
+					newFiles['movie_name'] = file.originalName;
+					newFiles['movie_uuid'] = file.uuid;
+				}
+				return newFiles;
+			});
 			if (!err) {
 				if (vid !== '') {
 					variables = {
 						id: vid,
-						uuid: getFieldValue('uuid'),
 						name: getFieldValue('name'),
 						description: getFieldValue('description'),
-						category: getFieldValue('category'),
-						isEncoded: 'Yes',
-						path: getFieldValue('path')
+						category: getFieldValue('category')
 					};
 				} else {
 					variables = {
-						uuid: getFieldValue('uuid'),
+						cover_uuid: newFiles['img_uuid'],
+						mov_uuid: newFiles['movie_uuid'],
 						name: getFieldValue('name'),
+						mov_name: newFiles['movie_name'],
+						cover_name: newFiles['image_name'],
 						description: getFieldValue('description'),
 						category: getFieldValue('category'),
 						isEncoded: 'No',
 						path: ''
 					};
 				}
-				this.mutation({
-					variables
-				});
+				console.log(variables);
+				// this.mutation({
+				// 	variables
+				// });
 			}
 		});
 	};
