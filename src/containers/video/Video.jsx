@@ -33,6 +33,7 @@ const VIDEOS_QUERY = gql`
 			mov_name
 			cover_name
 			name
+			keyword
 			description
 			category {
 				id
@@ -67,13 +68,13 @@ const CREATE_VIDEO_MUTATION = gql`
 			mov_uuid: $mov_uuid
 			cover_uuid: $cover_uuid,
 			mov_name: $mov_name,
-			cover_name,
-			name,
-			description,
-			category,
-			isEncoded,
-			hd,
-			keyword
+			cover_name: $cover_name,
+			name: $name,
+			description: $description,
+			category: $category,
+			isEncoded: $isEncoded,
+			hd: $hd,
+			keyword: $keyword
 		) {
 			id
 		}
@@ -279,6 +280,8 @@ class Video extends PureComponent {
 									name: '',
 									description: '',
 									path: '',
+									keyword: '',
+									hd: true,
 									category: { name: '', id: '' }
 								};
 					if (error) {
@@ -299,6 +302,12 @@ class Video extends PureComponent {
 											initialValue: `${videoData.description}`,
 											rules: [ { required: true, message: '请输入视频的描述!' } ]
 										})(<Input type="textarea" placeholder="视频描述(不超过255个字)" />)}
+									</FormItem>
+									<FormItem {...formItemLayout} label="视频关键字">
+										{getFieldDecorator('keyword', {
+											initialValue: `${videoData.keyword}`,
+											rules: [ { required: true, message: '请输入匹配的视频关键字, 已逗号分离开!' } ]
+										})(<Input placeholder="请输入匹配的视频关键字, 已逗号分离开!" />)}
 									</FormItem>
 									<Query query={QUERY_CATEGORIES}>
 										{({ data }) => {
@@ -362,7 +371,7 @@ class Video extends PureComponent {
 										<div className="ant-row ant-form-item">
 											<div className="ant-col-2 ant-form-item-label">
 												<label htmlFor="name" className="ant-form-item-required" title="上传视频">
-													上传视频
+													视频和封面图
 												</label>
 											</div>
 											<div className="ant-col-14 ant-form-item-control-wrapper">
