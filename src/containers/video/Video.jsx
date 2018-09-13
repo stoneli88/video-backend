@@ -53,27 +53,23 @@ const VIDEOS_QUERY = gql`
 
 const CREATE_VIDEO_MUTATION = gql`
 	mutation CreateVideoMutation(
-		$mov_uuid: String
-		$cover_uuid: String
-		$mov_name: String
-		$cover_name: String
+		$mov_uuid: String!
+		$cover_uuid: String!
+		$mov_name: String!
+		$cover_name: String!
 		$name: String
 		$description: String
 		$category: String
-		$isEncoded: String
-		$hd: Boolean
 		$keyword: String
 	) {
 		createVideo(
 			mov_uuid: $mov_uuid
-			cover_uuid: $cover_uuid,
-			mov_name: $mov_name,
-			cover_name: $cover_name,
-			name: $name,
-			description: $description,
-			category: $category,
-			isEncoded: $isEncoded,
-			hd: $hd,
+			cover_uuid: $cover_uuid
+			mov_name: $mov_name
+			cover_name: $cover_name
+			name: $name
+			description: $description
+			category: $category
 			keyword: $keyword
 		) {
 			id
@@ -82,40 +78,8 @@ const CREATE_VIDEO_MUTATION = gql`
 `;
 
 const UPDATE_VIDEO_MUTATION = gql`
-	mutation UpdateVideoMutation(
-		$id: String
-		$name: String
-		$description: String
-		$category: String
-		$isEncoded: String
-		$channel: String
-		$duration: String
-		$framerate: String
-		$hd: Boolean
-		$keyword: String
-		$viewnumber: String
-		$likes: String
-		$dislikes: String
-		$mov_url: String
-		$cover_url: String
-	) {
-		updateVideo(
-		id: $id
-		name: $name
-		description: $description
-		category: $category
-		isEncoded: $isEncoded
-		channel: $channel
-		duration: $duration
-		framerate: $framerate
-		hd: $hd
-		keyword: $keyword
-		viewnumber: $viewnumber
-		likes: $likes
-		dislikes: $dislikes
-		mov_url: $mov_url
-		cover_url: $cover_url
-		) {
+	mutation UpdateVideoMutation($id: String, $name: String, $description: String, $category: String) {
+		updateVideo(id: $id, name: $name, description: $description, category: $category) {
 			id
 		}
 	}
@@ -132,10 +96,13 @@ class Video extends PureComponent {
 		super();
 		this.state = {};
 		this.uploadedFiles = [];
-		this.handleDeleteFile = this.handleDeleteFile.bind(this);
 	}
 
 	componentDidMount() {
+		uploader.methods.clearStoredFiles();
+	}
+
+	componentWillUnmount() {
 		uploader.methods.clearStoredFiles();
 	}
 
@@ -148,12 +115,12 @@ class Video extends PureComponent {
 			const newFiles = {};
 			let uploadedFiles = uploader.methods.getUploads();
 			uploadedFiles = uploadedFiles.filter((file) => {
-				return file.status === 'upload successful'
+				return file.status === 'upload successful';
 			});
 			uploadedFiles = uploadedFiles.map((file) => {
-				if (hasExtension(file.originalName, ['jpg', 'png'])) {
+				if (hasExtension(file.originalName, [ 'jpg', 'png' ])) {
 					newFiles['image_name'] = file.originalName;
-					newFiles['img_uuid'] = file.uuid
+					newFiles['img_uuid'] = file.uuid;
 				} else {
 					newFiles['movie_name'] = file.originalName;
 					newFiles['movie_uuid'] = file.uuid;
@@ -170,21 +137,17 @@ class Video extends PureComponent {
 					};
 				} else {
 					variables = {
-						cover_uuid: newFiles['img_uuid'],
 						mov_uuid: newFiles['movie_uuid'],
-						name: getFieldValue('name'),
+						cover_uuid: newFiles['img_uuid'],
 						mov_name: newFiles['movie_name'],
 						cover_name: newFiles['image_name'],
+						name: getFieldValue('name'),
 						description: getFieldValue('description'),
 						category: getFieldValue('category'),
-						isEncoded: 'No',
-						path: ''
+						keyword: getFieldValue('keyword')
 					};
 				}
-				console.log(variables);
-				// this.mutation({
-				// 	variables
-				// });
+				this.mutation({ variables });
 			}
 		});
 	};
@@ -201,38 +164,6 @@ class Video extends PureComponent {
 		this.uploadedFiles = files;
 		this.props.form.setFieldsValue({
 			uuid: ''
-		});
-	};
-
-	// 删除已经存在的文件
-	// todo: 需要添加删除转码后文件的删除接口.
-	handleDeleteFile = (refetch) => {
-		const { getFieldValue } = this.props.form;
-		const vid = this.props.location.search ? this.props.location.search.replace('?', '').trim() : '';
-		axios.delete(`/upload/${getFieldValue('uuid')}`).then(() => {
-			Modal.success({
-				title: '提醒',
-				content: '视频删除成功，现在您可以上传新的视频了。',
-				onOk: () => {
-					this.mutation({
-						refetchQueries: () => [
-							{
-								query: VIDEOS_QUERY,
-								variables: this._getQueryVariables()
-							}
-						],
-						variables: {
-							id: vid,
-							uuid: '',
-							name: getFieldValue('name'),
-							description: getFieldValue('description'),
-							category: getFieldValue('category'),
-							isEncoded: 'No',
-							path: ''
-						}
-					});
-				}
-			});
 		});
 	};
 
@@ -339,33 +270,14 @@ class Video extends PureComponent {
 											);
 										}}
 									</Query>
-									{videoData.uuid !== '' && videoData.path !== '' ? (
+									{videoData.mov_uuid ? (
 										<div style={{ marginLeft: '8.4444%', width: '58.4%' }}>
 											<Alert
 												message="请注意"
-												description="您已经上传过视频了且改视频已经转码，您将不能在修改视频源文件。"
-												type="warning"
-												showIcon
-											/>
-										</div>
-									) : (
-										''
-									)}
-									{videoData.uuid !== '' && videoData.path === '' ? (
-										<div style={{ marginLeft: '8.4444%', width: '58.4%' }}>
-											<Alert
-												message="请注意"
-												description="您必须先删除你之前的视频文件然后您就可以上传新的文件。"
+												description="暂不支持编辑已经上传的视频，如果需要，可以删除本条视频，新建一部视频，谢谢。"
 												type="info"
 												showIcon
 											/>
-											<Button
-												type="danger"
-												style={{ width: '100%', margin: '10px 0', height: '40px' }}
-												onClick={() => this.handleDeleteFile.apply(this, [ refetch ])}
-											>
-												我要删除已经上传的视频
-											</Button>
 										</div>
 									) : (
 										<div className="ant-row ant-form-item">
@@ -384,7 +296,7 @@ class Video extends PureComponent {
 									)}
 									<FormItem {...formItemLayout} label="视频标识">
 										{getFieldDecorator('uuid', {
-											initialValue: `${videoData.uuid}`,
+											initialValue: videoData.mov_uuid ? `${videoData.mov_uuid}` : '',
 											rules: [ { required: true, message: '请确认文件上传是否成功.' } ]
 										})(<Input disabled type="text" placeholder="文件标识，上传完成后会显示" />)}
 									</FormItem>
