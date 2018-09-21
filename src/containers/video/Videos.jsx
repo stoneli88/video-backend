@@ -3,15 +3,13 @@ import { Link } from 'react-router-dom';
 // Axios
 import axios from '../../axios';
 // ANTD.
-import { Layout, Table, Alert, Tooltip, Icon, Button, Input, Select, Row, Col, Modal, Spin } from 'antd';
+import { Layout, Table, Alert, Tooltip, Icon, Button, Input, Select, Row, Col, Modal, Spin, Tag } from 'antd';
 // Date.
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
 // Apollo.
 import { Query, Mutation } from 'react-apollo';
 import gql from 'graphql-tag';
-// Video player.
-import FlvPlayer from '../../components/player/FlvPlayer';
 // Stylesheet.
 import '../../assets/stylesheets/App.css';
 
@@ -42,6 +40,8 @@ const VIDEOS_QUERY = gql`
 			likes
 			dislikes
 			isEncoded
+			dynamicRes
+			manualRes
 			createdAt
 		}
 	}
@@ -55,19 +55,9 @@ const REMOVE_VIDEO = gql`
 	}
 `;
 
-const handlePlayVideo = async (record, VideosComponent) => {
-	try {
-    const videoInfo = await axios.get(`/video/play/${record.id}`);
-		const { mp4info, xml } = videoInfo.data.video;
-		VideosComponent._openPreviewModal(mp4info, xml);
-	} catch (error) {
-		console.log(error);
-	}
-};
-
 const handleCreateJob = async (record, VideosComponent, type) => {
 	const data = {
-    type,
+		type,
 		cover_name: record.cover_name,
 		cover_uuid: record.cover_uuid,
 		mov_name: record.mov_name,
@@ -75,19 +65,19 @@ const handleCreateJob = async (record, VideosComponent, type) => {
 		video_id: record.id
 	};
 	try {
-    let secondsToGo = 3;
-    await axios.post('/queue/create_job', data);
-    const modal = Modal.success({
-      title: '好消息',
-      content: `成功创建了工作流，请耐心等待.(${secondsToGo}后关闭)`
-    });
-    setInterval(() => {
-      secondsToGo -= 1;
-      modal.update({
-        content: `成功创建了工作流，请耐心等待.(${secondsToGo}后关闭)`,
-      });
-    }, 1000);
-    setTimeout(() => modal.destroy(), secondsToGo * 1000);
+		let secondsToGo = 3;
+		await axios.post('/queue/create_job', data);
+		const modal = Modal.success({
+			title: '好消息',
+			content: `成功创建了工作流，请耐心等待.(${secondsToGo}后关闭)`
+		});
+		setInterval(() => {
+			secondsToGo -= 1;
+			modal.update({
+				content: `成功创建了工作流，请耐心等待.(${secondsToGo}后关闭)`
+			});
+		}, 1000);
+		setTimeout(() => modal.destroy(), secondsToGo * 1000);
 	} catch (error) {
 		console.log(error);
 	}
@@ -100,17 +90,36 @@ const makeQueueColumns = (VideosComponent) => {
 			dataIndex: 'name',
 			width: 280,
 			render: (text, record, index) => {
+				const { dynamicRes, manualRes } = record;
 				return (
-					<Tooltip title="点击查看视频详情">
-						<Link
-							to={{
-								pathname: '/video/edit',
-								search: `${record.id}`
-							}}
-						>
-							{text}
-						</Link>
-					</Tooltip>
+					<div>
+						<Tooltip title="点击查看视频详情">
+							<Link
+								style={{ marginBottom: '8px', display: 'inline-block' }}
+								to={{
+									pathname: '/video/edit',
+									search: `${record.id}`
+								}}
+							>
+								<Icon
+									type="youtube"
+									theme="filled"
+									style={{
+										fontSize: '32px',
+										color: '#ff4d4f',
+										position: 'relative',
+										top: '7px',
+										left: '-2px'
+									}}
+								/>
+								{text}
+							</Link>
+						</Tooltip>
+						<div>
+							{manualRes === 'No' ? <Tag color="#f50">DOWNLOAD未完成</Tag> : <Tag color="#87d068">DOWNLOAD完成</Tag>}
+							{dynamicRes === 'No' ? <Tag color="#f50">HLS未完成</Tag> : <Tag color="#87d068">HLS完成</Tag>}
+						</div>
+					</div>
 				);
 			}
 		},
@@ -149,6 +158,7 @@ const makeQueueColumns = (VideosComponent) => {
 			width: 80,
 			render: (text, record) => {
 				const { isEncoded } = record;
+				console.log(isEncoded);
 				let status = {};
 				if (isEncoded === 'RUNING') {
 					status = (
@@ -202,10 +212,13 @@ const makeQueueColumns = (VideosComponent) => {
 			width: 160,
 			align: 'center',
 			render: (text, record) => {
+				const { dynamicRes, manualRes, isEncoded } = record;
+				console.log(record)
 				return (
 					<ButtonGroup>
 						<Tooltip title="生成符合HLS格式的播放源。">
 							<Button
+								disabled={dynamicRes !== "No" || isEncoded === "RUNING" ? true : false}
 								type="default"
 								onClick={() => handleCreateJob.apply(this, [ record, VideosComponent, 'hls' ])}
 							>
@@ -218,6 +231,7 @@ const makeQueueColumns = (VideosComponent) => {
 						</Tooltip>
 						<Tooltip title="生成符合下载需要的视频源。">
 							<Button
+								disabled={manualRes !== "No" || isEncoded === "RUNING" ? true : false }
 								type="default"
 								onClick={() => handleCreateJob.apply(this, [ record, VideosComponent, 'download' ])}
 							>
@@ -226,14 +240,6 @@ const makeQueueColumns = (VideosComponent) => {
 									type="cloud-download"
 									theme="outlined"
 								/>
-							</Button>
-						</Tooltip>
-						<Tooltip title="可以试看视频是否可以成功播放。">
-							<Button
-								type="default"
-								onClick={() => handlePlayVideo.apply(this, [ record, VideosComponent ])}
-							>
-								<Icon style={{ fontSize: '16px', verticalAlign: '-0.25em' }} type="play-circle" />
 							</Button>
 						</Tooltip>
 					</ButtonGroup>
@@ -288,15 +294,6 @@ class Videos extends PureComponent {
 		});
 	};
 
-	_openPreviewModal = (mp4info, res) => {
-		this.setState({
-			videoType: 'mp4',
-			mimeCodec: mp4info,
-			modalVisible: true,
-			videoMDS: res
-		});
-	};
-
 	_getQueryVariables = () => {
 		// const page = parseInt(this.props.match.params.page, 10);
 		const skip = 0;
@@ -320,6 +317,8 @@ class Videos extends PureComponent {
 				createdAt: video.createdAt,
 				updateAt: video.updateAt,
 				isEncoded: video.isEncoded,
+				dynamicRes: video.dynamicRes,
+				manualRes: video.manualRes,
 				description: video.description
 			};
 		}));
@@ -334,22 +333,6 @@ class Videos extends PureComponent {
 		const hasSelected = selectedRowKeys.length > 0 && selectedRowKeys.length < 2;
 		return (
 			<Layout className="App container-dashboard" style={{ borderRadius: '5px' }}>
-				<Modal
-          centered
-          width="800"
-					title="视频预览"
-					visible={this.state.modalVisible}
-					onOk={this.handleModalOk}
-					onCancel={this.handleModalCancel}
-				>
-					<FlvPlayer
-						mpd={this.state.videoMDS}
-						type={this.state.videoType}
-						mimeCodec={this.state.mimeCodec}
-						cors={true}
-						isLive={false}
-					/>
-				</Modal>
 				<Row gutter={24} style={{ margin: '10px 0' }}>
 					<Col span={16}>
 						<InputGroup compact>
@@ -391,7 +374,7 @@ class Videos extends PureComponent {
 						</Mutation>
 					</Col>
 				</Row>
-				<Query query={VIDEOS_QUERY} variables={this._getQueryVariables()}>
+				<Query query={VIDEOS_QUERY} variables={this._getQueryVariables()} pollInterval={500}>
 					{({ error, data }) => {
 						if (error)
 							return <Alert showIcon message={`获取视频信息出错了!`} description={`原因:${error}`} type="error" />;

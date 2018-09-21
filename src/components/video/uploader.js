@@ -1,7 +1,7 @@
 import FineUploaderTraditional from 'fine-uploader-wrappers';
 import '../react-fine-upload/gallery/gallery.css';
 
-const UPLOADER_SERVER = "http://127.0.0.1:8080";
+const UPLOADER_SERVER = "http://127.0.0.1:8080/api/";
 
 // declare a new uploader instance.
 const videoUploader = new FineUploaderTraditional({
@@ -18,10 +18,10 @@ const videoUploader = new FineUploaderTraditional({
 		},
 		deleteFile: {
 			enabled: true,
-      endpoint: `${UPLOADER_SERVER}/api/upload`
+			endpoint: `${UPLOADER_SERVER}/upload`
 		},
 		request: {
-      endpoint: `${UPLOADER_SERVER}/api/uploads`
+			endpoint: `${UPLOADER_SERVER}/uploads`
 		},
 		retry: {
 			enableAuto: true

@@ -1,6 +1,4 @@
 import React, { PureComponent } from 'react';
-// Axios
-import axios from '../../axios';
 // ANTD.
 import { Layout, Form, Input, Button, Select, Alert, Modal } from 'antd';
 // Apollo.
@@ -9,6 +7,8 @@ import gql from 'graphql-tag';
 // Upload.
 import { VideoUploader, hasExtension } from '../../components/video/VideoUploader';
 import uploader from '../../components/video/uploader';
+// Video preview.
+import DemoPlayer from './DemoPlayer';
 // Stylesheet.
 import './style.css';
 
@@ -45,7 +45,8 @@ const VIDEOS_QUERY = gql`
 			viewnumber
 			likes
 			dislikes
-			isEncoded
+			dynamicRes
+			manualRes
 			createdAt
 		}
 	}
@@ -99,11 +100,11 @@ class Video extends PureComponent {
 	}
 
 	componentDidMount() {
-		uploader.methods.clearStoredFiles();
+		uploader.methods.reset();
 	}
 
 	componentWillUnmount() {
-		uploader.methods.clearStoredFiles();
+		uploader.methods.reset();
 	}
 
 	handleSubmit = (e) => {
@@ -278,6 +279,9 @@ class Video extends PureComponent {
 												type="info"
 												showIcon
 											/>
+											<div style={{ marginTop: '10px' }}>
+												<DemoPlayer videoId={this.props.location.search.replace('?', '').trim()} />
+											</div>
 										</div>
 									) : (
 										<div className="ant-row ant-form-item">
