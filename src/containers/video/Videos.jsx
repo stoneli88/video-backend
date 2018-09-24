@@ -158,7 +158,6 @@ const makeQueueColumns = (VideosComponent) => {
 			width: 80,
 			render: (text, record) => {
 				const { isEncoded } = record;
-				console.log(isEncoded);
 				let status = {};
 				if (isEncoded === 'RUNING') {
 					status = (
@@ -213,7 +212,6 @@ const makeQueueColumns = (VideosComponent) => {
 			align: 'center',
 			render: (text, record) => {
 				const { dynamicRes, manualRes, isEncoded } = record;
-				console.log(record)
 				return (
 					<ButtonGroup>
 						<Tooltip title="生成符合HLS格式的播放源。">

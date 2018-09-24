@@ -1,4 +1,5 @@
 import React, { PureComponent } from 'react';
+import axios from '../../axios';
 // ANTD.
 import { Layout, Form, Input, Button, Select, Alert, Modal } from 'antd';
 // Apollo.
@@ -8,7 +9,7 @@ import gql from 'graphql-tag';
 import { VideoUploader, hasExtension } from '../../components/video/VideoUploader';
 import uploader from '../../components/video/uploader';
 // Video preview.
-import DemoPlayer from './DemoPlayer';
+import VideoPlayer from '../../components/player/VideoPlayer';
 // Stylesheet.
 import './style.css';
 
@@ -95,12 +96,21 @@ const formItemLayout = {
 class Video extends PureComponent {
 	constructor() {
 		super();
-		this.state = {};
+		this.state = {
+			m3u8Addr: ''
+		};
 		this.uploadedFiles = [];
 	}
 
 	componentDidMount() {
+		const videoId = this.props.location.search.replace('?', '').trim()
 		uploader.methods.reset();
+		axios.get(`/video/play/${videoId}`).then((videoInfo) => {
+			const { hls } = videoInfo.data.video;
+			this.setState({
+				m3u8Addr: hls
+			});
+		});
 	}
 
 	componentWillUnmount() {
@@ -280,7 +290,7 @@ class Video extends PureComponent {
 												showIcon
 											/>
 											<div style={{ marginTop: '10px' }}>
-												<DemoPlayer videoId={this.props.location.search.replace('?', '').trim()} />
+												<VideoPlayer m38uAddr={this.state.m3u8Addr} />
 											</div>
 										</div>
 									) : (
