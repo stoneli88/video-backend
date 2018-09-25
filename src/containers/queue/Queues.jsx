@@ -36,7 +36,7 @@ const makeQueueColumns = (QueueComponent) => {
 		},
 		{
 			title: '名称',
-			dataIndex: 'name',
+			dataIndex: 'mov_name',
 			width: 350,
 			render: (text, record, index) => {
 				return (
@@ -55,15 +55,15 @@ const makeQueueColumns = (QueueComponent) => {
 		},
 		{
 			title: '创建时间',
-			dataIndex: 'created',
+			dataIndex: 'job_created',
 			width: 150,
 			render: (text, record, index) => {
 				return dayjs(text).format('YYYY-MM-DD HH:mm:ss');
 			}
 		},
 		{
-			title: '视频分辨率',
-			dataIndex: 'size',
+			title: '任务类型',
+			dataIndex: 'job_type',
 			width: 150,
 			render: (text, record, index) => {
 				return <span>{text}</span>;
@@ -83,7 +83,17 @@ const makeQueueColumns = (QueueComponent) => {
 							cancelText="取消"
 						>
 							<Button type="danger">
-								<Icon type="delete" />终止任务
+								<Icon type="delete" />删除
+							</Button>
+						</Popconfirm>
+						<Popconfirm
+							title="请确认要删除这条任务吗?"
+							onConfirm={() => handleRemoveJob.apply(this, [record, QueueComponent])}
+							okText="确定"
+							cancelText="取消"
+						>
+							<Button style={{ marginLeft: "10px" }}>
+								<Icon type="reload" />重启
 							</Button>
 						</Popconfirm>
 					</div>
@@ -135,7 +145,8 @@ class Queue extends PureComponent {
 		return this.state.queues.map((queue) => {
 			return {
 				id: queue.id,
-				name: queue.data.video_name,
+				mov_name: queue.data.mov_name,
+				job_type: queue.data.job_type,
 				created: queue.data.job_created || '无法获取时间',
 				size: queue.data.video_size
 			};

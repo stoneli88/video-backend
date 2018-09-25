@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 // Axios
 import axios from '../../axios';
 // ANTD.
-import { Layout, Table, Alert, Tooltip, Icon, Button, Input, Select, Row, Col, Modal, Spin, Tag } from 'antd';
+import { Layout, Table, Alert, Tooltip, Icon, Button, Input, Select, Row, Col, Modal, Spin, Tag, message } from 'antd';
 // Date.
 import dayjs from 'dayjs';
 import 'dayjs/locale/zh-cn';
@@ -116,7 +116,11 @@ const makeQueueColumns = (VideosComponent) => {
 							</Link>
 						</Tooltip>
 						<div>
-							{manualRes === 'No' ? <Tag color="#f50">DOWNLOAD未完成</Tag> : <Tag color="#87d068">DOWNLOAD完成</Tag>}
+							{manualRes === 'No' ? (
+								<Tag color="#f50">DOWNLOAD未完成</Tag>
+							) : (
+								<Tag color="#87d068">DOWNLOAD完成</Tag>
+							)}
 							{dynamicRes === 'No' ? <Tag color="#f50">HLS未完成</Tag> : <Tag color="#87d068">HLS完成</Tag>}
 						</div>
 					</div>
@@ -216,7 +220,7 @@ const makeQueueColumns = (VideosComponent) => {
 					<ButtonGroup>
 						<Tooltip title="生成符合HLS格式的播放源。">
 							<Button
-								disabled={dynamicRes !== "No" || isEncoded === "RUNING" ? true : false}
+								disabled={dynamicRes !== 'No' || isEncoded === 'RUNING' ? true : false}
 								type="default"
 								onClick={() => handleCreateJob.apply(this, [ record, VideosComponent, 'hls' ])}
 							>
@@ -229,7 +233,7 @@ const makeQueueColumns = (VideosComponent) => {
 						</Tooltip>
 						<Tooltip title="生成符合下载需要的视频源。">
 							<Button
-								disabled={manualRes !== "No" || isEncoded === "RUNING" ? true : false }
+								disabled={manualRes !== 'No' || isEncoded === 'RUNING' ? true : false}
 								type="default"
 								onClick={() => handleCreateJob.apply(this, [ record, VideosComponent, 'download' ])}
 							>
@@ -262,17 +266,13 @@ class Videos extends PureComponent {
 	}
 
 	handleDeleteVideo = () => {
-		const selectedRowKeys = this.state.selectedRowKeys[0]; // * 暂只能删除一个视频文件
-		this.deleteVideoMutation({
-			variables: {
-				id: this.videos[selectedRowKeys]['id']
-			},
-			refetchQueries: () => [
-				{
-					query: VIDEOS_QUERY,
-					variables: this._getQueryVariables()
-				}
-			]
+		const selectedRowKeys = this.state.selectedRowKeys.map((selected) => {
+			return axios.delete(`/video/${this.videos[selected]['id']}`);
+		});
+		const hide = message.loading('正在执行删除视频的操作，请稍等..', 0);
+		Promise.all(selectedRowKeys).then(() => {
+			hide();
+			message.success('删除视频成功!', 2.5);
 		});
 	};
 
@@ -328,7 +328,7 @@ class Videos extends PureComponent {
 			selectedRowKeys,
 			onChange: this.onSelectChange
 		};
-		const hasSelected = selectedRowKeys.length > 0 && selectedRowKeys.length < 2;
+		const hasSelected = selectedRowKeys.length > 0 && selectedRowKeys.length < 10;
 		return (
 			<Layout className="App container-dashboard" style={{ borderRadius: '5px' }}>
 				<Row gutter={24} style={{ margin: '10px 0' }}>
